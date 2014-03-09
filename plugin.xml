@@ -1,0 +1,20 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+    <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+            id="info.newforestcicadaproject.audiorecorder" version="0.1.0">
+        <name>AudioRecorder</name>
+        <description>AudioRecorder Plugin</description>
+        <author>New Forest Cicada Project</author>
+        <js-module src="www/audioRecorder-plugin.js" name="AudioRecorder">
+            <clobbers target="audioRecorder" />
+        </js-module>
+        <platform name="ios">
+            <config-file target="config.xml" parent="/*">
+                <feature name="AudioRecorder">
+                    <param name="ios-package" value="CDVAudioRecorder"/>
+                    <param name="onload" value="true"/>
+                </feature>
+            </config-file>
+            <header-file src="src/ios/CDVAudioRecorder.h" />
+            <source-file src="src/ios/CDVAudioRecorder.m" />
+        </platform>
+    </plugin>
