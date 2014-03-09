@@ -1,6 +1,6 @@
  <?xml version="1.0" encoding="UTF-8"?>
     <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-            id="info.newforestcicadaproject.audiorecorder" version="0.1.0">
+            id="info.newforestcicada.audiorecorder" version="0.1.0">
         <name>AudioRecorder</name>
         <description>AudioRecorder Plugin</description>
         <author>New Forest Cicada Project</author>
@@ -15,6 +15,6 @@
                 </feature>
             </config-file>
             <header-file src="src/ios/CDVAudioRecorder.h" />
-            <source-file src="src/ios/CDVAudioRecorder.m" />
+            <source-file src="src/ios/CDVAudioRecorder.m" target="AudioRecorder/CDVAudioRecorder.m"/>
         </platform>
     </plugin>
