@@ -14,7 +14,7 @@
                     <param name="onload" value="true"/>
                 </feature>
             </config-file>
-            <header-file src="src/ios/AudioRecorder.h" />
+            <header-file src="src/ios/AudioRecorder.h" target-dir="AudioRecorder" />
             <header-file src="src/ios/CDVAudioRecorder.h" />
             <header-file src="src/ios/DeviceType.h" />            
             <header-file src="src/ios/GoertzelFilter.h" />
