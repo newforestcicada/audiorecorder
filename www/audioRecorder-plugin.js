@@ -7,8 +7,8 @@
 //  Copyright (c) 2014 University of Southampton. All rights reserved.
 //
 
-var audioRecorder = module.exports;
-
+var audioRecorder = exports;
+  
 var generateDelayedCallback = function (callback) {
 
 	var delayedCallback = function(data) {
@@ -20,7 +20,7 @@ var generateDelayedCallback = function (callback) {
 	return delayedCallback;
 
 };
-
+               
 var fns = ['initialiseAudioRecorder', 'startAudioRecorder', 'stopAudioRecorder', 'startWhiteNoise', 'stopWhiteNoise', 'startHeterodyne', 'stopHeterodyne', 'getAmplitude', 'getFrequencies', 'captureRecording'];
 
 // Add functions for each of the plugin callbacks we want to expose
@@ -33,19 +33,19 @@ for(var i=0; i<fns.length; i++) {
 
 		var fnName = fns[i];
 
-		audioRecorder.prototype[fnName] = function(win, fail) {
+		audioRecorder[fnName] = function(win, fail) {
 
 			win = win || function() {};
 			fail = fail || function() {};
 			
-			cordova.exec(generateDelayedCallback(win), fail, "CicadaDetector", fnName, [null]);
+			cordova.exec(generateDelayedCallback(win), fail, "AudioRecorder", fnName, [null]);
 
 		};
 
 	})();
 }
 
-audioRecorder.prototype.setHeterodyneFrequency = function(win, fail, frequency) {
+audioRecorder.setHeterodyneFrequency = function(win, fail, frequency) {
 
 	win = win || function() {};
 	fail = fail || function() {};
@@ -56,7 +56,7 @@ audioRecorder.prototype.setHeterodyneFrequency = function(win, fail, frequency) 
 
 }
 
-audioRecorder.prototype.writeSonogram = function(win, fail, width, height, duration) {
+audioRecorder.writeSonogram = function(win, fail, width, height, duration) {
 
 	win = win || function() {};
 	fail = fail || function() {};
@@ -69,7 +69,7 @@ audioRecorder.prototype.writeSonogram = function(win, fail, width, height, durat
 
 }
 
-audioRecorder.prototype.writeRecording = function(win, fail, duration) {
+audioRecorder.writeRecording = function(win, fail, duration) {
 
 	win = win || function() {};
 	fail = fail || function() {};
