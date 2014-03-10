@@ -4,7 +4,7 @@
         <name>AudioRecorder</name>
         <description>AudioRecorder Plugin</description>
         <author>New Forest Cicada Project</author>
-        <js-module src="www/audioRecorder-plugin.js" name="AudioRecorder">
+        <js-module src="www/audioRecorder-plugin.js" name="audioRecorder">
             <clobbers target="audioRecorder" />
         </js-module>
         <platform name="ios">
