@@ -45,7 +45,7 @@ for(var i=0; i<fns.length; i++) {
 	})();
 }
 
-audioRecorder.setHeterodyneFrequency = function(win, fail, frequency) {
+audioRecorder.setHeterodyneFrequency = function(frequency, win, fail) {
 
 	win = win || function() {};
 	fail = fail || function() {};
@@ -56,7 +56,7 @@ audioRecorder.setHeterodyneFrequency = function(win, fail, frequency) {
 
 }
 
-audioRecorder.writeSonogram = function(win, fail, width, height, duration) {
+audioRecorder.writeSonogram = function(width, height, duration, win, fail) {
 
 	win = win || function() {};
 	fail = fail || function() {};
@@ -69,7 +69,7 @@ audioRecorder.writeSonogram = function(win, fail, width, height, duration) {
 
 }
 
-audioRecorder.writeRecording = function(win, fail, duration) {
+audioRecorder.writeRecording = function(duration, win, fail) {
 
 	win = win || function() {};
 	fail = fail || function() {};
