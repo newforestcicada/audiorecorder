@@ -25,14 +25,6 @@
 
 #define MAX_SURVEY_VALUES  1024
 
-static float iPhone3_baseline[] = {95.6, 68.5, 60.6, 57.0, 55.4, 53.1, 51.8, 49.8, 53.6, 50.8, 50.9, 49.5, 44.8, 43.9, 43.2, 42.3, 42.8, 43.1, 43.9, 44.1};
-
-static float iPhone4_baseline[] = {195.0, 155.2, 142.3, 136.3, 132.7, 128.7, 125.2, 120.7, 116.8, 112.7, 106.5, 93.8, 78.7, 72.7, 71.6, 48.1, 19.1, 48.5, 86.6, 114.2};
-
-static float iPhone4s_baseline[] = {155.7, 110.1, 97.9, 91.0, 88.8, 83.7, 78.8, 73.5, 64.1, 53.0, 42.5, 42.3, 52.9, 58.0, 50.8, 34.3, 20.6, 19.3, 16.9, 12.3};
-
-static float iPhone5_baseline[] = {133.6, 85.2, 75.6, 71.2, 66.8, 65.1, 61.2, 57.1, 51.9, 43.6, 30.9, 16.9, 24.5, 44.5, 50.2, 37.5, 39.5, 49.6, 59.1, 36.9};
-
 typedef enum {SILENT, WHITE_NOISE, HETERODYNE} output_t;
 
 typedef struct {
@@ -48,14 +40,7 @@ typedef struct {
 @interface AudioRecorder () {
     
     AudioRecorderState _audioRecorderState;
-    
-    float _baseline[NUMBER_OF_GOERTZEL_FILTERS];
-    
-    float _sonogram[MAX_SURVEY_VALUES][NUMBER_OF_GOERTZEL_FILTERS];
-    
-    float _ratioScalingFactor;
-    float _sonogramScalingFactor;
-    
+        
 }
 
 @end
@@ -96,76 +81,6 @@ static BOOL CheckError(OSStatus error, const char *operation) {
 	
 	return YES;
 	
-}
-
-- (id)init {
-    
-    self = [super init];
-    
-    if (self) {
-        
-        float* baselinePointer;
-                
-        if ( [DeviceType getDeviceType] == DEVICE_TYPE_IPHONE3 ) {
-            
-            NSLog(@"iPhone 3");
-            
-            _ratioScalingFactor = 1.5;
-            
-            _sonogramScalingFactor = 0.8;
-            
-            baselinePointer = iPhone3_baseline;
-            
-        } else if ( [DeviceType getDeviceType] == DEVICE_TYPE_IPHONE4 ) {
-            
-            NSLog(@"iPhone 4");
-            
-            _ratioScalingFactor = 0.5;
-            
-            _sonogramScalingFactor = 0.5;
-            
-            baselinePointer = iPhone4_baseline;
-            
-        } else if ( [DeviceType getDeviceType] == DEVICE_TYPE_IPHONE4S ) {
-            
-            NSLog(@"iPhone 4S");
-            
-            _ratioScalingFactor = 0.4;
-            
-            _sonogramScalingFactor = 0.4;
-            
-            baselinePointer = iPhone4s_baseline;
-            
-        } else if ( [DeviceType getDeviceType] == DEVICE_TYPE_IPHONE5 ) {
-
-            NSLog(@"iPhone 5");
-            
-            _ratioScalingFactor = 0.4;
-            
-            _sonogramScalingFactor = 0.4;
-            
-            baselinePointer = iPhone5_baseline;
-            
-        } else {
-        
-            NSLog(@"iDevice");
-            
-            _ratioScalingFactor = 0.4;
-            
-            _sonogramScalingFactor = 0.4;
-            
-            baselinePointer = iPhone4s_baseline;
-                        
-        }
-        
-        for ( int i=0; i<NUMBER_OF_GOERTZEL_FILTERS; i++) {
-            _baseline[i] = baselinePointer[i];
-        }
-        
-    }
-    
-    return self;
-    
 }
 
 -(BOOL)initialiseAudioRecorder {
@@ -361,7 +276,7 @@ static BOOL CheckError(OSStatus error, const char *operation) {
     
     for ( int i=0; i<NUMBER_OF_GOERTZEL_FILTERS; i++ ) {
         
-        float value = MAX(0.0,2.0/(1.0+exp(-_sonogramScalingFactor*GoertzelFilter_estimate(&_audioRecorderState.goerztelFilters[i])/_baseline[i])) - 1.0);
+        float value = GoertzelFilter_estimate(&_audioRecorderState.goerztelFilters[i]);
         
         [array addObject:[NSNumber numberWithFloat:value]];
         
