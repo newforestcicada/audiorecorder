@@ -10,7 +10,6 @@
 
 #import "AudioRecorder.h"
 
-#import "DeviceType.h"
 #import "LowPassFilter.h"
 #import "GoertzelFilter.h"
 #import "RecordingBuffer.h"
