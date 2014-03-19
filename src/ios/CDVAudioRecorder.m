@@ -99,29 +99,33 @@
 
 -(void)stopAudioRecorder:(CDVInvokedUrlCommand*)command {
 
-	BOOL success = NO;
-	
-	if ( _audioRecorder ) {
-		
-		NSLog(@"Detector stopped.");
-					
-		success = [_audioRecorder stopAudioRecorder];
-		
-	}
-	
-	CDVPluginResult* pluginResult = nil;
-	
-	if ( success ) {
-		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-		
-	} else {
-		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-		
-	}
-	
-	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    [self.commandDelegate runInBackground:^{
+        
+        BOOL success = NO;
+        
+        if ( _audioRecorder ) {
+            
+            NSLog(@"Detector stopped.");
+                        
+            success = [_audioRecorder stopAudioRecorder];
+            
+        }
+        
+        CDVPluginResult* pluginResult = nil;
+        
+        if ( success ) {
+            
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+            
+        } else {
+            
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+            
+        }
+        
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        
+    }];
 
 }
 
