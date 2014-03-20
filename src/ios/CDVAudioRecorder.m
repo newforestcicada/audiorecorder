@@ -29,7 +29,7 @@
     NSString        *dateString;
 
     formatter = [[NSDateFormatter alloc] init];
-    [formatter setDateFormat:@"yyyy-MM-dd_HH-mm-ss"];
+    [formatter setDateFormat:@"yyyy_MM_dd_HH_mm_ss"];
 
     dateString = [formatter stringFromDate:[NSDate date]];
 
