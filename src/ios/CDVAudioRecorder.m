@@ -13,6 +13,8 @@
     
     AudioRecorder* _audioRecorder;
     
+    BOOL _started;
+
     NSString* _fileName;
     
 }
@@ -73,15 +75,25 @@
 	
         if ( _audioRecorder ) {
             
-            NSLog(@"Detector started.");
+            if ( _started ) {
+                
+                success = YES;
+                
+            } else {
             
-            success = [_audioRecorder startAudioRecorder];
-                    
+                NSLog(@"Detector started.");
+            
+                success = [_audioRecorder startAudioRecorder];
+                
+            }
+            
         }
         
         CDVPluginResult* pluginResult = nil;
         
         if ( success ) {
+            
+            _started = YES;
             
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
         
@@ -103,17 +115,27 @@
         
         BOOL success = NO;
         
-        if ( _audioRecorder ) {
+        if ( _started ) {
+        
+            if ( _audioRecorder ) {
+                
+                NSLog(@"Detector stopped.");
+                            
+                success = [_audioRecorder stopAudioRecorder];
+                
+            }
             
-            NSLog(@"Detector stopped.");
-                        
-            success = [_audioRecorder stopAudioRecorder];
+        } else {
+            
+            success = YES;
             
         }
         
         CDVPluginResult* pluginResult = nil;
         
         if ( success ) {
+            
+            _started = NO;
             
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
             
