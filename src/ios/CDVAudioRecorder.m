@@ -14,7 +14,7 @@
     AudioRecorder* _audioRecorder;
     
     BOOL _started;
-
+    
     NSString* _fileName;
     
 }
@@ -336,123 +336,127 @@
 }
 
 -(void)writeSonogram:(CDVInvokedUrlCommand*)command {
-    
-    int x = 320;
-    
-    @try {
-        
-        x = [[command.arguments objectAtIndex:0] intValue];
-        
-    } @catch (NSException *e) {
-        
-        NSLog(@"Couldn't get sonogram x dimensions. Using default value of %d.",x);
-        
-    }
-    
-    int y = 120;
-    
-    @try {
-        
-        y = [[command.arguments objectAtIndex:1] intValue];
-        
-    } @catch (NSException *e) {
-        
-        NSLog(@"Couldn't get sonogram y dimensions. Using default value of %d.",y);
-        
-    }
-    
-    int duration = 30;
-    
-    @try {
-        
-        duration = [[command.arguments objectAtIndex:2] intValue];
-        
-    } @catch (NSException *e) {
-        
-        NSLog(@"Couldn't get sonogram duration. Using default value of %d.",duration);
-        
-    }
 
-    NSString *fileName = [_fileName stringByAppendingString:@".png"];
-    
-    NSLog(@"File : %@, Duration : %d",fileName,duration);
-    
-    NSString *filePath = [ [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:fileName ];
-	
-    NSURL *url = [ NSURL fileURLWithPath:filePath];
+    [self.commandDelegate runInBackground:^{
 
-    NSString *songramString = nil;
-    
-    if ( _audioRecorder ) {
-		
-        songramString = [_audioRecorder writeSonogramWithURL:url withX:x andY:y forDuration:duration];
-		
-    }
-    
-    CDVPluginResult* pluginResult = nil;
-    
-    if ( songramString ) {
-        
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:songramString];
-        
-    } else {
-        
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-        
-    }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        int x = 320;
+
+        @try {
+
+            x = [[command.arguments objectAtIndex:0] intValue];
+
+        } @catch (NSException *e) {
+
+            NSLog(@"Couldn't get sonogram x dimensions. Using default value of %d.",x);
+
+        }
+
+        int y = 120;
+
+        @try {
+
+            y = [[command.arguments objectAtIndex:1] intValue];
+
+        } @catch (NSException *e) {
+
+            NSLog(@"Couldn't get sonogram y dimensions. Using default value of %d.",y);
+
+        }
+
+        int duration = 30;
+
+        @try {
+
+            duration = [[command.arguments objectAtIndex:2] intValue];
+
+        } @catch (NSException *e) {
+
+            NSLog(@"Couldn't get sonogram duration. Using default value of %d.",duration);
+
+        }
+
+        NSString *fileName = [_fileName stringByAppendingString:@".png"];
+
+        NSLog(@"File : %@, Duration : %d",fileName,duration);
+
+        NSString *filePath = [ [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:fileName ];
+
+        NSURL *url = [ NSURL fileURLWithPath:filePath];
+
+        NSString *songramString = nil;
+
+        if ( _audioRecorder ) {
+
+            songramString = [_audioRecorder writeSonogramWithURL:url withX:x andY:y forDuration:duration];
+
+        }
+
+        CDVPluginResult* pluginResult = nil;
+
+        if ( songramString ) {
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:songramString];
+
+        } else {
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+
+        }
+
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+    }];
 
 }
 
 -(void)writeRecording:(CDVInvokedUrlCommand*)command {
-	
+
 	[self.commandDelegate runInBackground:^{
-		
+
         int duration = 30;
-        
+
         @try {
-            
+
             duration = [[command.arguments objectAtIndex:0] intValue];
-            
+
         } @catch (NSException *e) {
-            
+
             NSLog(@"Couldn't get recording duration. Using default value of %d.",duration);
-            
+
         }
-		
-		NSString *fileName = [_fileName stringByAppendingString:@".wav"];
-		
-		NSLog(@"File : %@, Duration : %d",fileName,duration);
 
-		NSString *filePath = [ [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:fileName ];
-	
-		NSURL *url = [ NSURL fileURLWithPath:filePath];
-	
-		BOOL success = NO;
-		
-		if ( _audioRecorder ) {
-		
-			success = [_audioRecorder writeRecordingWithURL:url forDuration:duration];
-		
-		}
+        NSString *fileName = [_fileName stringByAppendingString:@".wav"];
 
-		CDVPluginResult* pluginResult = nil;
-		
-		if ( success ) {
-			
-			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-			
-		} else {
-			
-			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-			
-		}
-		
-		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-		
-	}];
-	
+        NSLog(@"File : %@, Duration : %d",fileName,duration);
+
+        NSString *filePath = [ [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:fileName ];
+
+        NSURL *url = [ NSURL fileURLWithPath:filePath];
+
+        BOOL success = NO;
+
+        if ( _audioRecorder ) {
+
+            success = [_audioRecorder writeRecordingWithURL:url forDuration:duration];
+
+        }
+
+        CDVPluginResult* pluginResult = nil;
+
+        if ( success ) {
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+
+        } else {
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+
+        }
+
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+    }];
+
 }
 
 @end
