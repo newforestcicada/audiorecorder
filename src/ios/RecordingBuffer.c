@@ -8,8 +8,8 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
 
+#include "Settings.h"
 #include "RecordingBuffer.h"
 
 void RecordingBuffer_initialise(RecordingBuffer* recordingBuffer) {
@@ -31,51 +31,65 @@ void RecordingBuffer_update(AudioSampleType sample, RecordingBuffer* recordingBu
 }
 
 void RecordingBuffer_copyMainBuffer(RecordingBuffer* recordingBuffer) {
-	
-	recordingBuffer->copyIndex = recordingBuffer->index;
 
-	memcpy(recordingBuffer->copyBuffer, recordingBuffer->mainBuffer, RECORDING_BUFFER_LENGTH*sizeof(AudioSampleType));
+    int copyIndex = recordingBuffer->index;
+    
+    if ( copyIndex == RECORDING_BUFFER_LENGTH ) {
+		
+		copyIndex = 0;
+		
+	}
+
+    int firstSectionLength = copyIndex;
+
+    int secondSectionLength = RECORDING_BUFFER_LENGTH - firstSectionLength;
+
+    memcpy(recordingBuffer->copyBuffer, &recordingBuffer->mainBuffer[firstSectionLength], secondSectionLength * sizeof(AudioSampleType));
+
+    memcpy(&recordingBuffer->copyBuffer[secondSectionLength], recordingBuffer->mainBuffer, firstSectionLength * sizeof(AudioSampleType));
 	
 }
 
-OSStatus RecordingBuffer_writeRecording(AudioFileID* audioFile, RecordingBuffer* recordingBuffer,int duration) {
-	
-	UInt32 samplesToWrite = RECORDING_BUFFER_SAMPLES_PER_SECOND*duration;
+bool RecordingBuffer_getSample(AudioSampleType* sample, RecordingBuffer* recordingBuffer, int index, int duration) {
+
+    UInt32 numberOfSamples = SAMPLES_PER_SECOND * duration;
+
+    if ( numberOfSamples > RECORDING_BUFFER_LENGTH ) {
+
+        numberOfSamples = RECORDING_BUFFER_LENGTH;
+
+    }
+
+    int indexOfBuffer = RECORDING_BUFFER_LENGTH - numberOfSamples + index;
+
+    if (index < numberOfSamples) {
+
+        *sample = recordingBuffer->copyBuffer[indexOfBuffer];
+
+        return true;
+
+    } else {
+
+        *sample = 0;
+
+        return false;
+
+    }
+
+}
+
+OSStatus RecordingBuffer_writeRecording(AudioFileID* audioFile, RecordingBuffer* recordingBuffer, int duration) {
+
+    UInt32 samplesToWrite = SAMPLES_PER_SECOND * duration;
 	
 	if ( samplesToWrite > RECORDING_BUFFER_LENGTH ) {
 	
 		samplesToWrite = RECORDING_BUFFER_LENGTH;
 		
 	}
-	
-	if ( recordingBuffer->copyIndex >= samplesToWrite ) {
-		
-		UInt32 bytesToWrite = samplesToWrite*sizeof(AudioSampleType);
-		
-		return AudioFileWriteBytes(*audioFile, false, 0, &bytesToWrite, &recordingBuffer->copyBuffer[recordingBuffer->copyIndex-samplesToWrite]);
-		
-	} else {
-		
-		samplesToWrite -= recordingBuffer->copyIndex;
-		
-		UInt32 bytesToWrite = samplesToWrite*sizeof(AudioSampleType);
 
-		OSStatus status = AudioFileWriteBytes(*audioFile, false, 0, &bytesToWrite, &recordingBuffer->copyBuffer[RECORDING_BUFFER_LENGTH-samplesToWrite]);
-		
-		if ( status == noErr ) {
-			
-			UInt32 bytesSoFar = bytesToWrite;
-			
-			bytesToWrite = recordingBuffer->copyIndex*sizeof(AudioSampleType);
-			
-			return AudioFileWriteBytes(*audioFile, false, bytesSoFar, &bytesToWrite, &recordingBuffer->copyBuffer);
-			
-		} else {
-				
-			return status;
-				
-		}
-		
-	}
-	
+    UInt32 bytesToWrite = samplesToWrite * sizeof(AudioSampleType);
+
+    return AudioFileWriteBytes(*audioFile, false, 0, &bytesToWrite, &recordingBuffer->copyBuffer[RECORDING_BUFFER_LENGTH-samplesToWrite]);
+
 }
