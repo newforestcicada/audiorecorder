@@ -22,6 +22,7 @@
             <header-file src="src/ios/KalmanFilter.h" />
             <header-file src="src/ios/LowPassFilter.h" />
             <header-file src="src/ios/RecordingBuffer.h" /> 
+            <header-file src="src/ios/Settings.h" /> 
             <source-file src="src/ios/AudioRecorder.m" />
             <source-file src="src/ios/CDVAudioRecorder.m" />       
             <source-file src="src/ios/GoertzelFilter.c" />
