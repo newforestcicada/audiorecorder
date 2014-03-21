@@ -16,8 +16,6 @@
 #import "RecordingBuffer.h"
 #import "HeterodyneDetector.h"
 
-#import "NSData+MBBase64.h"
-
 #define NUMBER_OF_GOERTZEL_FILTERS      43
 #define GOERTZEL_WINDOW_SIZE            128
 #define AMPLITUDE_SIGMOID_FACTOR        40
