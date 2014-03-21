@@ -6,12 +6,10 @@
 //  Copyright (c) 2014 New Forest Cicada Project. All rights reserved.
 //
 
-#include <stdio.h>
 #include <math.h>
 
+#include "Settings.h"
 #include "HeterodyneDetector.h"
-
-#define SAMPLING_RATE 44100.0
 
 HeterodyneDetector HeterodyneDetector_initialise(float frequency) {
     
@@ -20,7 +18,7 @@ HeterodyneDetector HeterodyneDetector_initialise(float frequency) {
 	temp.realPart = 0.0f;
     temp.imaginaryPart = 1.0f;
     
-    float theta = 2.0f * M_PI * frequency / SAMPLING_RATE;
+    float theta = 2.0f * M_PI * frequency / (float)SAMPLES_PER_SECOND;
     
     temp.cosTheta = cos(theta);
     temp.sinTheta = sin(theta);
@@ -43,7 +41,7 @@ HeterodyneDetector HeterodyneDetector_initialise(float frequency) {
 
 void HeterodyneDetector_setFrequency(float frequency, HeterodyneDetector *heterodyneDetector) {
     
-    float theta = 2.0f * M_PI * frequency / SAMPLING_RATE;
+    float theta = 2.0f * M_PI * frequency / (float) SAMPLES_PER_SECOND;
     
     heterodyneDetector->cosTheta = cos(theta);
     heterodyneDetector->sinTheta = sin(theta);
