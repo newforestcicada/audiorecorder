@@ -21,7 +21,6 @@
             <header-file src="src/ios/HighPassFilter.h" /> 
             <header-file src="src/ios/KalmanFilter.h" />
             <header-file src="src/ios/LowPassFilter.h" />
-            <header-file src="src/ios/NSData+MBBase64.h" /> 
             <header-file src="src/ios/RecordingBuffer.h" /> 
             <source-file src="src/ios/AudioRecorder.m" />
             <source-file src="src/ios/CDVAudioRecorder.m" />       
@@ -30,7 +29,6 @@
             <source-file src="src/ios/HighPassFilter.c" /> 
             <source-file src="src/ios/KalmanFilter.c" />
             <source-file src="src/ios/LowPassFilter.c" />
-            <source-file src="src/ios/NSData+MBBase64.m" /> 
             <source-file src="src/ios/RecordingBuffer.c" /> 
         </platform>
     </plugin>
