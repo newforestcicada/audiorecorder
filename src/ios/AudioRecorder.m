@@ -10,6 +10,7 @@
 
 #import "AudioRecorder.h"
 
+#import "Settings.h"
 #import "LowPassFilter.h"
 #import "GoertzelFilter.h"
 #import "RecordingBuffer.h"
@@ -17,12 +18,10 @@
 
 #import "NSData+MBBase64.h"
 
-#define NUMBER_OF_GOERTZEL_FILTERS  20
-
-#define GOERTZEL_WINDOW_SIZE 128
-#define SAMPLING_RATE 44100.0
-
-#define MAX_SURVEY_VALUES  1024
+#define NUMBER_OF_GOERTZEL_FILTERS      43
+#define GOERTZEL_WINDOW_SIZE            128
+#define AMPLITUDE_SIGMOID_FACTOR        40
+#define FREQUENCIES_SIGMOID_FACTOR      0.002
 
 typedef enum {SILENT, WHITE_NOISE, HETERODYNE} output_t;
 
@@ -184,7 +183,7 @@ static BOOL CheckError(OSStatus error, const char *operation) {
 	_audioRecorderState.lowPassFilter = LowPassFilter_initialise(1.404746361e+03, 0.9985762554);
     
     for ( int i=0; i<NUMBER_OF_GOERTZEL_FILTERS; i++) {
-        _audioRecorderState.goerztelFilters[i] = GoertzelFilter_initialise(GOERTZEL_WINDOW_SIZE, 1000.0+(float)i*1000.0, SAMPLING_RATE);
+        _audioRecorderState.goerztelFilters[i] = GoertzelFilter_initialise(GOERTZEL_WINDOW_SIZE, 500.0+(float)i*500.0, SAMPLES_PER_SECOND);
     }
     
     _audioRecorderState.heterodyneDetector = HeterodyneDetector_initialise(14000.0f);
@@ -264,8 +263,10 @@ static BOOL CheckError(OSStatus error, const char *operation) {
 }
 
 -(NSNumber*)getAmplitude {
+
+    float value = 2.0f / (1.0f + (float)exp(-AMPLITUDE_SIGMOID_FACTOR*LowPassFilter_output(&_audioRecorderState.lowPassFilter))) - 1.0f;
     
-	return [NSNumber numberWithFloat:LowPassFilter_output(&_audioRecorderState.lowPassFilter)];
+	return [NSNumber numberWithFloat:value];
 
 }
 
@@ -274,8 +275,10 @@ static BOOL CheckError(OSStatus error, const char *operation) {
     NSMutableArray *array = [[NSMutableArray alloc] initWithCapacity:NUMBER_OF_GOERTZEL_FILTERS];
     
     for ( int i=0; i<NUMBER_OF_GOERTZEL_FILTERS; i++ ) {
+
+        float output = GoertzelFilter_estimate(&_audioRecorderState.goerztelFilters[i]);
         
-        float value = GoertzelFilter_estimate(&_audioRecorderState.goerztelFilters[i]);
+        float value = 2.0f / (1.0f + (float)exp(-FREQUENCIES_SIGMOID_FACTOR*output)) - 1.0f;
         
         [array addObject:[NSNumber numberWithFloat:value]];
         
@@ -285,8 +288,7 @@ static BOOL CheckError(OSStatus error, const char *operation) {
     
 }
 
--(void)captureRecording
-{
+-(void)captureRecording {
     
     RecordingBuffer_copyMainBuffer(&_audioRecorderState.recordingBuffer);
 
@@ -295,34 +297,59 @@ static BOOL CheckError(OSStatus error, const char *operation) {
 -(NSString*)writeSonogramWithURL:(NSURL*)url withX:(int)x andY:(int)y forDuration:(int)duration {
 
     char* rgba = (char*)malloc(4*x*y);
-    
-    /*
+
+    GoertzelFilter goerztelFilters[NUMBER_OF_GOERTZEL_FILTERS];
+
+    for (int i=0; i<NUMBER_OF_GOERTZEL_FILTERS; i++) {
+        goerztelFilters[i] = GoertzelFilter_initialise(GOERTZEL_WINDOW_SIZE, 500.0+(float)i*500.0, SAMPLES_PER_SECOND);
+    }
+
     int index = 0;
+
+    AudioSampleType sample;
+
+    while ( RecordingBuffer_getSample(&sample, &_audioRecorderState.recordingBuffer, index, duration) ) {
+
+        for (int i=0; i<NUMBER_OF_GOERTZEL_FILTERS;i++ ) {
+            GoertzelFilter_update(sample, &goerztelFilters[i]);
+        }
+
+        index += 1;
+
+    }
+
+
     
-    float xRatio = (float)(_surveyIndex-1)/(float)(x-1);
-    float yRatio = (float)(NUMBER_OF_GOERTZEL_FILTERS-1)/(float)(y-1);
-    
+    //float xRatio = (float)(_surveyIndex-1)/(float)(x-1);
+    //float yRatio = (float)(NUMBER_OF_GOERTZEL_FILTERS-1)/(float)(y-1);
+
+    index = 0;
+
     for (int j=0; j<y; j++) {
         
-        int yIndex = (int)(0.5+yRatio*(float)j);
+        //int yIndex = (int)(0.5+yRatio*(float)j);
         
         for (int i=0; i<x; i++) {
             
-            int xIndex = (int)(0.5+xRatio*(float)i);
+            //int xIndex = (int)(0.5+xRatio*(float)i);
             
-            char value = (char)(20.0+200.0*_sonogram[xIndex][NUMBER_OF_GOERTZEL_FILTERS-yIndex-1]);
+            //char value = (char)(20.0+200.0*_sonogram[xIndex][NUMBER_OF_GOERTZEL_FILTERS-yIndex-1]);
             
-            for (int i=0; i<4; i++) {
-                rgba[index++] = value;
-            }
-            
+            //for (int i=0; i<4; i++) {
+            //    rgba[index++] = value;
+            //}
+
+            rgba[index++] = (char)255;
+            rgba[index++] = 0;
+            rgba[index++] = 0;
+            rgba[index++] = (char)255;
+
         }
         
     }
-    */
     
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    CGContextRef bitmapContext = CGBitmapContextCreate(rgba,x,y,8,4*x,colorSpace,kCGImageAlphaPremultipliedLast);
+    CGContextRef bitmapContext = CGBitmapContextCreate(rgba,x,y,8,4*x,colorSpace,(CGBitmapInfo)kCGImageAlphaPremultipliedLast);
     
     CFRelease(colorSpace);
     
@@ -363,7 +390,7 @@ static BOOL CheckError(OSStatus error, const char *operation) {
 }
 
 -(BOOL)writeRecordingWithURL:(NSURL*)url forDuration:(int)duration {
-		
+
 	AudioFileID audioFile;
 	
 	BOOL error;
@@ -396,11 +423,11 @@ static void MyInterruptionListener(void *inUserData, UInt32 inInterruptionState)
 	switch (inInterruptionState)
 	{
 		case kAudioSessionBeginInterruption:
-            NSLog(@"Audio interupted. Stopping detector.");
+            NSLog(@"Audio interupted. Stopping recorder.");
             [[AudioRecorder getInstance] stopAudioRecorder];
 			break;
 		case kAudioSessionEndInterruption:
-            NSLog(@"Audio interuption ended. Starting detector.");
+            NSLog(@"Audio interuption ended. Starting recorder.");
             [[AudioRecorder getInstance] startAudioRecorder];
 			break;
 		default:
