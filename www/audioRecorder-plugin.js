@@ -21,7 +21,7 @@ var generateDelayedCallback = function (callback) {
 
 };
                
-var fns = ['initialiseAudioRecorder', 'startAudioRecorder', 'stopAudioRecorder', 'startWhiteNoise', 'stopWhiteNoise', 'startHeterodyne', 'stopHeterodyne', 'getAmplitude', 'getFrequencies', 'captureRecording'];
+var fns = ['initialiseAudioRecorder', 'startAudioRecorder', 'stopAudioRecorder', 'startWhiteNoise', 'stopWhiteNoise', 'startHeterodyne', 'stopHeterodyne', 'getAmplitude', 'getFrequencies', 'getFrequencyColours', 'captureRecording'];
 
 // Add functions for each of the plugin callbacks we want to expose
 
