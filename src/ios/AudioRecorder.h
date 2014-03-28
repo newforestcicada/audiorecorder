@@ -8,27 +8,39 @@
 
 #import <Foundation/Foundation.h>
 
+typedef enum {
+    AUDIORECORDER_RAW, AUDIORECORDER_SCALED, AUDIORECORDER_COLOURS
+} outputScaling_t;
+
 @interface AudioRecorder : NSObject
 
--(BOOL)initialiseAudioRecorder;
--(BOOL)startAudioRecorder;
--(BOOL)stopAudioRecorder;
+- (BOOL)initialiseAudioRecorder;
 
--(void)startWhiteNose;
--(void)stopWhiteNoise;
--(void)startHeterodyne;
--(void)stopHeterodyne;
--(void)setHeterodyneFrequency:(int)frequency;
+- (BOOL)startAudioRecorder;
 
--(NSNumber*)getAmplitude;
--(NSArray*)getFrequencies;
+- (BOOL)stopAudioRecorder;
 
--(void)captureRecording;
+- (void)startWhiteNose;
 
--(BOOL)writeRecordingWithURL:(NSURL*)url forDuration:(int)duration;
--(NSString*)writeSonogramWithURL:(NSURL*)url withX:(int)x andY:(int)y forDuration:(int)duration;
+- (void)stopWhiteNoise;
 
-+(AudioRecorder*)getInstance;
+- (void)startHeterodyne;
+
+- (void)stopHeterodyne;
+
+- (void)setHeterodyneFrequency:(int)frequency;
+
+- (NSNumber*)getAmplitude:(outputScaling_t)outputScaling;
+
+- (NSArray*)getFrequencies:(outputScaling_t)outputScaling;
+
+- (void)captureRecording;
+
+- (BOOL)writeRecordingWithURL:(NSURL *)url forDuration:(int)duration;
+
+- (NSString *)writeSonogramWithURL:(NSURL *)url withX:(int)x andY:(int)y forDuration:(int)duration;
+
++ (AudioRecorder *)getInstance;
 
 @end
 

@@ -10,25 +10,25 @@
 #import "CDVAudioRecorder.h"
 
 @interface CDVAudioRecorder () {
-    
-    AudioRecorder* _audioRecorder;
-    
+
+    AudioRecorder *_audioRecorder;
+
     BOOL _started;
-    
-    NSString* _fileName;
-    
+
+    NSString *_fileName;
+
 }
 
--(NSString*)createFormattedDateString;
+- (NSString *)createFormattedDateString;
 
 @end
 
 @implementation CDVAudioRecorder
 
--(NSString*)createFormattedDateString {
+- (NSString *)createFormattedDateString {
 
     NSDateFormatter *formatter;
-    NSString        *dateString;
+    NSString *dateString;
 
     formatter = [[NSDateFormatter alloc] init];
     [formatter setDateFormat:@"yyyy_MM_dd_HH_mm_ss"];
@@ -39,105 +39,297 @@
 
 }
 
--(void)initialiseAudioRecorder:(CDVInvokedUrlCommand*)command {
-	
-	[self.commandDelegate runInBackground:^{
-        
+- (void)initialiseAudioRecorder:(CDVInvokedUrlCommand *)command {
+
+    [self.commandDelegate runInBackground:^{
+
         NSLog(@"Detector initialised.");
+
+        /* Initialise the audio recorder */
         
-		_audioRecorder = [AudioRecorder getInstance];
-        
-		BOOL success = [_audioRecorder initialiseAudioRecorder];
-        
-		CDVPluginResult* pluginResult = nil;
-        
-		if ( success == YES ) {
-            
-			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-            
-		} else {
-            
-			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-            
-		}
-        
-		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-        
-	}];
-	
+        _audioRecorder = [AudioRecorder getInstance];
+
+        BOOL success = [_audioRecorder initialiseAudioRecorder];
+
+        CDVPluginResult *pluginResult = nil;
+
+        if (success == YES ) {
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+
+        } else {
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+
+        }
+
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+    }];
+
 }
 
--(void)startAudioRecorder:(CDVInvokedUrlCommand*)command {
-	
-	[self.commandDelegate runInBackground:^{
-        
+- (void)startAudioRecorder:(CDVInvokedUrlCommand *)command {
+
+    [self.commandDelegate runInBackground:^{
+
         BOOL success = NO;
-	
-        if ( _audioRecorder ) {
-            
-            if ( _started ) {
-                
+
+        if (_audioRecorder) {
+
+            if (_started) {
+
                 success = YES;
-                
+
             } else {
-            
+
                 NSLog(@"Detector started.");
-            
+
                 success = [_audioRecorder startAudioRecorder];
-                
+
             }
-            
+
         }
-        
-        CDVPluginResult* pluginResult = nil;
-        
-        if ( success ) {
-            
+
+        CDVPluginResult *pluginResult = nil;
+
+        if (success) {
+
             _started = YES;
-            
+
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-        
+
         } else {
-            
+
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-            
+
         }
-        
+
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+    }];
+
+}
+
+- (void)stopAudioRecorder:(CDVInvokedUrlCommand *)command {
+
+    [self.commandDelegate runInBackground:^{
+
+        BOOL success = NO;
+
+        if (_started) {
+
+            if (_audioRecorder) {
+
+                NSLog(@"Detector stopped.");
+
+                success = [_audioRecorder stopAudioRecorder];
+
+            }
+
+        } else {
+
+            success = YES;
+
+        }
+
+        CDVPluginResult *pluginResult = nil;
+
+        if (success) {
+
+            _started = NO;
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+
+        } else {
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+
+        }
+
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+    }];
+
+}
+
+- (void)startWhiteNoise:(CDVInvokedUrlCommand *)command {
+
+    [self.commandDelegate runInBackground:^{
+            
+        CDVPluginResult *pluginResult = nil;
+
+        if (_audioRecorder) {
+
+            NSLog(@"White noise started");
+
+            [_audioRecorder startWhiteNose];
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+
+        } else {
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+
+        }
+
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
         
     }];
-	
+
 }
 
--(void)stopAudioRecorder:(CDVInvokedUrlCommand*)command {
+- (void)stopWhiteNoise:(CDVInvokedUrlCommand *)command {
+    
+    [self.commandDelegate runInBackground:^{
+
+        CDVPluginResult *pluginResult = nil;
+
+        if (_audioRecorder) {
+
+            NSLog(@"White noise stopped");
+
+            [_audioRecorder stopWhiteNoise];
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+
+        } else {
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+
+        }
+
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    
+    }];
+
+}
+
+- (void)startHeterodyne:(CDVInvokedUrlCommand *)command {
 
     [self.commandDelegate runInBackground:^{
         
-        BOOL success = NO;
-        
-        if ( _started ) {
-        
-            if ( _audioRecorder ) {
-                
-                NSLog(@"Detector stopped.");
-                            
-                success = [_audioRecorder stopAudioRecorder];
-                
-            }
-            
-        } else {
-            
-            success = YES;
-            
-        }
-        
-        CDVPluginResult* pluginResult = nil;
-        
-        if ( success ) {
-            
-            _started = NO;
-            
+        CDVPluginResult *pluginResult = nil;
+
+        if (_audioRecorder) {
+
+            NSLog(@"Heterodyne started");
+
+            [_audioRecorder startHeterodyne];
+
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+
+        } else {
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+
+        }
+
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        
+    }];
+
+}
+
+- (void)stopHeterodyne:(CDVInvokedUrlCommand *)command {
+    
+    [self.commandDelegate runInBackground:^{
+
+        CDVPluginResult *pluginResult = nil;
+
+        if (_audioRecorder) {
+
+            NSLog(@"Heterodyne stopped");
+
+            [_audioRecorder stopHeterodyne];
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+
+        } else {
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+
+        }
+
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        
+    }];
+
+}
+
+- (void)setHeterodyneFrequency:(CDVInvokedUrlCommand *)command {
+
+    [self.commandDelegate runInBackground:^{
+        
+        CDVPluginResult *pluginResult = nil;
+
+        int frequency = 15000;
+
+        @try {
+
+            frequency = [[command.arguments objectAtIndex:0] intValue];
+
+        } @catch (NSException *e) {
+
+            NSLog(@"Couldn't get frequency. Using default value of %d.", frequency);
+
+        }
+
+        if (_audioRecorder) {
+
+            NSLog(@"Set heterodyne frequency to %d.", frequency);
+
+            [_audioRecorder setHeterodyneFrequency:frequency];
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+
+        } else {
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+
+        }
+
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        
+    }];
+
+}
+
+- (void)getAmplitude:(CDVInvokedUrlCommand *)command {
+
+    [self.commandDelegate runInBackground:^{
+            
+        CDVPluginResult *pluginResult = nil;
+
+        if (_audioRecorder) {
+
+            NSNumber *amplitude = [_audioRecorder getAmplitude:AUDIORECORDER_RAW];
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDouble:[amplitude doubleValue]];
+
+        } else {
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+
+        }
+
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+    }];
+
+}
+
+- (void)getScaledAmplitude:(CDVInvokedUrlCommand *)command {
+    
+    [self.commandDelegate runInBackground:^{
+        
+        CDVPluginResult *pluginResult = nil;
+    
+        if (_audioRecorder) {
+            
+            NSNumber *amplitude = [_audioRecorder getAmplitude:AUDIORECORDER_SCALED];
+            
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDouble:[amplitude doubleValue]];
             
         } else {
             
@@ -148,194 +340,108 @@
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
         
     }];
-
-}
-
--(void)startWhiteNoise:(CDVInvokedUrlCommand*)command {
-	
-	CDVPluginResult* pluginResult = nil;
-	
-	if ( _audioRecorder ) {
-		
-		NSLog(@"White noise started");
-	
-		[_audioRecorder startWhiteNose];
-		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-	
-	} else {
-		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-		
-	}
-	
-	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-
-}
-
--(void)stopWhiteNoise:(CDVInvokedUrlCommand*)command {
-	
-	CDVPluginResult* pluginResult = nil;
-	
-	if ( _audioRecorder ) {
-		
-		NSLog(@"White noise stopped");
-	
-		[_audioRecorder stopWhiteNoise];
-		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-		
-	} else {
-		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-		
-	}
-		
-	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-
-}
-
--(void)startHeterodyne:(CDVInvokedUrlCommand*)command {
-	
-	CDVPluginResult* pluginResult = nil;
-	
-	if ( _audioRecorder ) {
-		
-		NSLog(@"Heterodyne started");
-        
-		[_audioRecorder startHeterodyne];
-		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-        
-	} else {
-		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-		
-	}
-	
-	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     
 }
 
--(void)stopHeterodyne:(CDVInvokedUrlCommand*)command {
-	
-	CDVPluginResult* pluginResult = nil;
-	
-	if ( _audioRecorder ) {
-		
-		NSLog(@"Heterodyne stopped");
+- (void)getFrequencies:(CDVInvokedUrlCommand *)command {
+
+    [self.commandDelegate runInBackground:^{
         
-		[_audioRecorder stopHeterodyne];
-		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-		
-	} else {
-		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-		
-	}
-    
-	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-    
-}
- 
--(void)setHeterodyneFrequency:(CDVInvokedUrlCommand*)command {
- 
-    CDVPluginResult* pluginResult = nil;
+        CDVPluginResult *pluginResult = nil;
 
-    int frequency = 15000;
- 
-    @try {
- 
-        frequency = [[command.arguments objectAtIndex:0] intValue];
- 
-    } @catch (NSException *e) {
- 
-        NSLog(@"Couldn't get frequency. Using default value of %d.",frequency);
- 
-    }
- 
-    if ( _audioRecorder ) {
- 
-        NSLog(@"Set heterodyne frequency to %d.",frequency);
- 
-        [_audioRecorder setHeterodyneFrequency:frequency];
- 
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
- 
-    } else {
- 
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
- 
-    }
- 
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
- 
-}
+        if (_audioRecorder) {
 
--(void)getAmplitude:(CDVInvokedUrlCommand*)command {
-	
-	CDVPluginResult* pluginResult = nil;
-	
-	if ( _audioRecorder ) {
-		
-		NSNumber* amplitude = [_audioRecorder getAmplitude];
-		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDouble:[amplitude doubleValue]];
-	
-	} else {
-		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-		
-	}
-	
-	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+            NSArray *array = [_audioRecorder getFrequencies:AUDIORECORDER_RAW];
 
-}
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:array];
 
--(void)getFrequencies:(CDVInvokedUrlCommand*)command {
-	
-	CDVPluginResult* pluginResult = nil;
-	
-	if ( _audioRecorder ) {
-		
-        NSArray* array = [_audioRecorder getFrequencies];
-        		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:array];
-		
-	} else {
-		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-		
-	}
-	
-	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-	
-}
+        } else {
 
--(void)captureRecording:(CDVInvokedUrlCommand*)command {
-	
-	CDVPluginResult* pluginResult = nil;
-	
-	if ( _audioRecorder ) {
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+
+        }
+
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
         
-		[_audioRecorder captureRecording];
-        
-        _fileName = [self createFormattedDateString];
-		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:_fileName];
-		
-	} else {
-		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-		
-	}
+    }];
+
+}
+
+- (void)getScaledFrequencies:(CDVInvokedUrlCommand *)command {
     
-	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    [self.commandDelegate runInBackground:^{
+            
+        CDVPluginResult *pluginResult = nil;
+    
+        if (_audioRecorder) {
+            
+            NSArray *array = [_audioRecorder getFrequencies:AUDIORECORDER_SCALED];
+            
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:array];
+            
+        } else {
+            
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+            
+        }
+        
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+ 
+    }];
     
 }
 
--(void)writeSonogram:(CDVInvokedUrlCommand*)command {
+- (void)getFrequencyColours:(CDVInvokedUrlCommand *)command {
+    
+    [self.commandDelegate runInBackground:^{
+        
+        CDVPluginResult *pluginResult = nil;
+    
+        if (_audioRecorder) {
+            
+            NSArray *array = [_audioRecorder getFrequencies:AUDIORECORDER_COLOURS];
+            
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:array];
+            
+        } else {
+            
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+            
+        }
+        
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        
+    }];
+    
+}
+
+- (void)captureRecording:(CDVInvokedUrlCommand *)command {
+
+    [self.commandDelegate runInBackground:^{
+
+        CDVPluginResult *pluginResult = nil;
+
+        if (_audioRecorder) {
+
+            [_audioRecorder captureRecording];
+
+            _fileName = [self createFormattedDateString];
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:_fileName];
+
+        } else {
+
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+
+        }
+
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+    }];
+
+}
+
+- (void)writeSonogram:(CDVInvokedUrlCommand *)command {
 
     [self.commandDelegate runInBackground:^{
 
@@ -347,7 +453,7 @@
 
         } @catch (NSException *e) {
 
-            NSLog(@"Couldn't get sonogram x dimensions. Using default value of %d.",x);
+            NSLog(@"Couldn't get sonogram x dimensions. Using default value of %d.", x);
 
         }
 
@@ -359,7 +465,7 @@
 
         } @catch (NSException *e) {
 
-            NSLog(@"Couldn't get sonogram y dimensions. Using default value of %d.",y);
+            NSLog(@"Couldn't get sonogram y dimensions. Using default value of %d.", y);
 
         }
 
@@ -371,29 +477,29 @@
 
         } @catch (NSException *e) {
 
-            NSLog(@"Couldn't get sonogram duration. Using default value of %d.",duration);
+            NSLog(@"Couldn't get sonogram duration. Using default value of %d.", duration);
 
         }
 
         NSString *fileName = [_fileName stringByAppendingString:@".png"];
 
-        NSLog(@"File : %@, Duration : %d",fileName,duration);
+        NSLog(@"File : %@, Duration : %d", fileName, duration);
 
-        NSString *filePath = [ [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:fileName ];
+        NSString *filePath = [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:fileName];
 
-        NSURL *url = [ NSURL fileURLWithPath:filePath];
+        NSURL *url = [NSURL fileURLWithPath:filePath];
 
         NSString *songramString = nil;
 
-        if ( _audioRecorder ) {
+        if (_audioRecorder) {
 
             songramString = [_audioRecorder writeSonogramWithURL:url withX:x andY:y forDuration:duration];
 
         }
 
-        CDVPluginResult* pluginResult = nil;
+        CDVPluginResult *pluginResult = nil;
 
-        if ( songramString ) {
+        if (songramString) {
 
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:songramString];
 
@@ -409,9 +515,9 @@
 
 }
 
--(void)writeRecording:(CDVInvokedUrlCommand*)command {
+- (void)writeRecording:(CDVInvokedUrlCommand *)command {
 
-	[self.commandDelegate runInBackground:^{
+    [self.commandDelegate runInBackground:^{
 
         int duration = 30;
 
@@ -421,29 +527,29 @@
 
         } @catch (NSException *e) {
 
-            NSLog(@"Couldn't get recording duration. Using default value of %d.",duration);
+            NSLog(@"Couldn't get recording duration. Using default value of %d.", duration);
 
         }
 
         NSString *fileName = [_fileName stringByAppendingString:@".wav"];
 
-        NSLog(@"File : %@, Duration : %d",fileName,duration);
+        NSLog(@"File : %@, Duration : %d", fileName, duration);
 
-        NSString *filePath = [ [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:fileName ];
+        NSString *filePath = [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:fileName];
 
-        NSURL *url = [ NSURL fileURLWithPath:filePath];
+        NSURL *url = [NSURL fileURLWithPath:filePath];
 
         BOOL success = NO;
 
-        if ( _audioRecorder ) {
+        if (_audioRecorder) {
 
             success = [_audioRecorder writeRecordingWithURL:url forDuration:duration];
 
         }
 
-        CDVPluginResult* pluginResult = nil;
+        CDVPluginResult *pluginResult = nil;
 
-        if ( success ) {
+        if (success) {
 
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
 

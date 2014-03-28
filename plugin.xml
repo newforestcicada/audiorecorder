@@ -15,6 +15,8 @@
                 </feature>
             </config-file>
             <header-file src="src/ios/AudioRecorder.h" />
+            <header-file src="src/ios/Sonogram.h" />
+            <header-file src="src/ios/DeviceType.h" />
             <header-file src="src/ios/CDVAudioRecorder.h" />        
             <header-file src="src/ios/GoertzelFilter.h" />
             <header-file src="src/ios/HeterodyneDetector.h" />
@@ -24,6 +26,8 @@
             <header-file src="src/ios/RecordingBuffer.h" /> 
             <header-file src="src/ios/Settings.h" /> 
             <source-file src="src/ios/AudioRecorder.m" />
+            <header-file src="src/ios/Sonogram.c" />
+            <header-file src="src/ios/DeviceType.m" />
             <source-file src="src/ios/CDVAudioRecorder.m" />       
             <source-file src="src/ios/GoertzelFilter.c" />
             <source-file src="src/ios/HeterodyneDetector.c" />

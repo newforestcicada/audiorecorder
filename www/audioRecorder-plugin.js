@@ -8,75 +8,63 @@
 //
 
 var audioRecorder = exports;
-  
-var generateDelayedCallback = function (callback) {
 
-	var delayedCallback = function(data) {
-		setTimeout(function() {
-			callback(data);
-		}, 10);
-	};
-
-	return delayedCallback;
-
-};
-               
-var fns = ['initialiseAudioRecorder', 'startAudioRecorder', 'stopAudioRecorder', 'startWhiteNoise', 'stopWhiteNoise', 'startHeterodyne', 'stopHeterodyne', 'getAmplitude', 'getFrequencies', 'getFrequencyColours', 'captureRecording'];
+var fns = ['initialiseAudioRecorder', 'startAudioRecorder', 'stopAudioRecorder', 'startWhiteNoise', 'stopWhiteNoise', 'startHeterodyne', 'stopHeterodyne', 'getAmplitude', 'getScaledAmplitude', 'getFrequencies', 'getScaledFrequencies', 'getFrequencyColours', 'captureRecording'];
 
 // Add functions for each of the plugin callbacks we want to expose
 
-for(var i=0; i<fns.length; i++) {
+for (var i = 0; i < fns.length; i++) {
 
-	// Wrap in a closure so that we lock in the value of fnName
-	
-	(function() {
+    // Wrap in a closure so that we lock in the value of fnName
 
-		var fnName = fns[i];
+    (function () {
 
-		audioRecorder[fnName] = function(win, fail) {
+        var fnName = fns[i];
 
-			win = win || function() {};
-			fail = fail || function() {};
-			
-			cordova.exec(generateDelayedCallback(win), fail, "AudioRecorder", fnName, [null]);
+        audioRecorder[fnName] = function (win, fail) {
 
-		};
+            win = win || function () {};
+            fail = fail || function () {};
 
-	})();
+            cordova.exec(win, fail, "AudioRecorder", fnName, [null]);
+
+        };
+
+    })();
 }
 
-audioRecorder.setHeterodyneFrequency = function(frequency, win, fail) {
+audioRecorder.setHeterodyneFrequency = function (frequency, win, fail) {
 
-	win = win || function() {};
-	fail = fail || function() {};
+    win = win || function () {};
+    fail = fail || function () {};
 
-	frequency = frequency || 15000;
+    frequency = frequency || 15000;
 
-	cordova.exec(generateDelayedCallback(win), fail, "AudioRecorder", "setHeterodyneFrequency", [frequency]);
-
-}
-
-audioRecorder.writeSonogram = function(width, height, duration, win, fail) {
-
-	win = win || function() {};
-	fail = fail || function() {};
-
-	width = width || 320;
-	height = height || 120;
-	duration = duration || 30;
-
-	cordova.exec(generateDelayedCallback(win), fail, "AudioRecorder", "writeSonogram", [width, height, duration]);
+    cordova.exec(win, fail, "AudioRecorder", "setHeterodyneFrequency", [frequency]);
 
 }
 
-audioRecorder.writeRecording = function(duration, win, fail) {
+audioRecorder.writeSonogram = function (width, height, duration, win, fail) {
 
-	win = win || function() {};
-	fail = fail || function() {};
+    win = win || function () {};
+    fail = fail || function () {};
 
-	duration = duration || 30;
+    width = width || 320;
+    height = height || 120;
+    duration = duration || 30;
 
-	cordova.exec(generateDelayedCallback(win), fail, "AudioRecorder", "writeRecording", [duration]);
+    cordova.exec(win, fail, "AudioRecorder", "writeSonogram", [width, height, duration]);
+
+}
+
+audioRecorder.writeRecording = function (duration, win, fail) {
+
+    win = win || function () {};
+    fail = fail || function () {};
+
+    duration = duration || 30;
+
+    cordova.exec(win, fail, "AudioRecorder", "writeRecording", [duration]);
 
 }
 
