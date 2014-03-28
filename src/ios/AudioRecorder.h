@@ -38,9 +38,9 @@ typedef enum {
 
 - (BOOL)writeRecordingWithURL:(NSURL *)url forDuration:(int)duration;
 
-- (NSString *)writeSonogramWithURL:(NSURL *)url withX:(int)x andY:(int)y forDuration:(int)duration;
+- (NSString*)writeSonogramWithURL:(NSURL *)url withX:(int)x andY:(int)y forDuration:(int)duration;
 
-+ (AudioRecorder *)getInstance;
++ (AudioRecorder*)getInstance;
 
 @end
 

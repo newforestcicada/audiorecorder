@@ -19,13 +19,13 @@
 
 }
 
-- (NSString *)createFormattedDateString;
+- (NSString*)createFormattedDateString;
 
 @end
 
 @implementation CDVAudioRecorder
 
-- (NSString *)createFormattedDateString {
+- (NSString*)createFormattedDateString {
 
     NSDateFormatter *formatter;
     NSString *dateString;

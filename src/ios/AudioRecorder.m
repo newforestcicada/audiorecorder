@@ -56,7 +56,7 @@ static AudioRecorder *_audioRecorder;
 
 @implementation AudioRecorder
 
-+ (AudioRecorder *)getInstance {
++ (AudioRecorder*)getInstance {
 
     if (_audioRecorder == nil ) {
 

@@ -11,7 +11,7 @@
 
 #import "AudioRecorder.h"
 
-@interface CDVAudioRecorder : CDVPlugin <CLLocationManagerDelegate>
+@interface CDVAudioRecorder : CDVPlugin
 
 - (void)initialiseAudioRecorder:(CDVInvokedUrlCommand *)command;
 
