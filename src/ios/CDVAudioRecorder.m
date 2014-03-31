@@ -19,13 +19,13 @@
 
 }
 
-- (NSString*)createFormattedDateString;
+- (NSString *)createFormattedDateString;
 
 @end
 
 @implementation CDVAudioRecorder
 
-- (NSString*)createFormattedDateString {
+- (NSString *)createFormattedDateString {
 
     NSDateFormatter *formatter;
     NSString *dateString;
@@ -402,6 +402,32 @@
             NSArray *array = [_audioRecorder getFrequencies:AUDIORECORDER_COLOURS];
             
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:array];
+            
+        } else {
+            
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+            
+        }
+        
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        
+    }];
+    
+}
+
+- (void)clearBuffers:(CDVInvokedUrlCommand *)command {
+    
+    [self.commandDelegate runInBackground:^{
+        
+        CDVPluginResult *pluginResult = nil;
+        
+        if (_audioRecorder) {
+            
+            NSLog(@"Clear buffers.");
+            
+            [_audioRecorder clearBuffers];
+            
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
             
         } else {
             

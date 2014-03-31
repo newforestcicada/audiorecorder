@@ -56,7 +56,7 @@ static AudioRecorder *_audioRecorder;
 
 @implementation AudioRecorder
 
-+ (AudioRecorder*)getInstance {
++ (AudioRecorder *)getInstance {
 
     if (_audioRecorder == nil ) {
 
@@ -115,16 +115,20 @@ static BOOL CheckError(OSStatus error, const char *operation) {
         int deviceType = [DeviceType getDeviceType];
         
         if (deviceType == DEVICE_TYPE_IPHONE || deviceType == DEVICE_TYPE_IPHONE_3G || deviceType == DEVICE_TYPE_IPHONE_3GS) {
-            
-            _numberOfGoetzelFilters = 21;
-            _goertzelStepFrequency = 1000;
-            _goertzelStartFrequency = 1000;
  
             _amplitudeSigmoidFactor = 40.0f;
             _frequenciesSigmoidFactor = 0.01f;
             
             _sonogramMinValue = 40.0f;
             _sonogramMaxValue = 1000.0f;
+            
+        }
+
+        if (deviceType == DEVICE_TYPE_IPHONE || deviceType == DEVICE_TYPE_IPHONE_3G || deviceType == DEVICE_TYPE_IPHONE_3GS || deviceType == DEVICE_TYPE_IPHONE_4 ) {
+
+            _numberOfGoetzelFilters = 21;
+            _goertzelStepFrequency = 1000;
+            _goertzelStartFrequency = 1000;
             
         }
         
@@ -371,10 +375,17 @@ static BOOL CheckError(OSStatus error, const char *operation) {
 
 }
 
+- (void)clearBuffers {
+    
+    Sonogram_clearSonogram(&_audioRecorderState.songram);
+    RecordingBuffer_clearBuffer(&_audioRecorderState.recordingBuffer);
+    
+}
+
 - (void)captureRecording {
 
-    RecordingBuffer_copyMainBuffer(&_audioRecorderState.recordingBuffer);
-    Sonogram_copyMainSonogram(&_audioRecorderState.songram);
+    RecordingBuffer_copyBuffer(&_audioRecorderState.recordingBuffer);
+    Sonogram_copySonogram(&_audioRecorderState.songram);
 
 }
 
@@ -517,7 +528,7 @@ static OSStatus InputModulatingRenderCallback(void *inRefCon, AudioUnitRenderAct
                 memcpy(&sample, buf.mData + (currentFrame * audioRecorderState->asbd.mBytesPerFrame) + (currentChannel * bytesPerChannel), sizeof(AudioSampleType));
 
                 Sonogram_update(sample, &audioRecorderState->songram);
-                LowPassFilter_update(sample, &audioRecorderState->lowPassFilter);
+                LowPassFilter_update(abs(sample), &audioRecorderState->lowPassFilter);
                 RecordingBuffer_update(sample, &audioRecorderState->recordingBuffer);
 
                 AudioSampleType *outputSample = &silent;
