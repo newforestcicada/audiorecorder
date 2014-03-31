@@ -6,8 +6,6 @@
 //  Copyright (c) 2012 University of Southampton. All rights reserved.
 //
 
-#include <stdio.h>
-
 #include "GoertzelFilter.h"
 
 GoertzelFilter GoertzelFilter_initialise(int N, double centralFrequency, double samplingFreqency) {
