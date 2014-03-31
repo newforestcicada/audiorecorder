@@ -144,7 +144,7 @@ float base(float value) {
 
 void Sonogram_colour(float value, float min, float max, UInt8 *red, UInt8 *green, UInt8 *blue) {
     
-    float scaledValue = MIN(1.0f, MAX(0.0f, logf( value / min) / logf(max / min)));
+    float scaledValue = MIN(1.0f, MAX(0.0f, logf( (value + 1.0f) / min) / logf(max / min)));
     
     *red = (UInt8) (0.5f + 255.0f * base(scaledValue - 0.5f));
 
