@@ -14,8 +14,8 @@
                     <param name="onload" value="true"/>
                 </feature>
             </config-file>
-            <framework src="AudioToolbox.framework" custom="true" />
-            <framework src="CoreAudio.framework" custom="true" />
+            <framework src="AudioToolbox.framework" />
+            <framework src="CoreAudio.framework" />
             <header-file src="src/ios/AudioRecorder.h" />
             <header-file src="src/ios/Sonogram.h" />
             <header-file src="src/ios/DeviceType.h" />
