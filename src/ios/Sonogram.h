@@ -28,7 +28,9 @@ void Sonogram_initialise(Sonogram *sonogram, int numberOfFilters, int startFrequ
 
 void Sonogram_update(AudioSampleType sample, Sonogram *sonogram);
 
-void Sonogram_copyMainSonogram(Sonogram *sonogram);
+void Sonogram_copySonogram(Sonogram *sonogram);
+
+void Sonogram_clearSonogram(Sonogram *sonogram);
 
 float Sonogram_getCurrentValue(Sonogram *sonogram, int filter);
 

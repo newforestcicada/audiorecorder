@@ -14,21 +14,23 @@
 
 void Sonogram_initialise(Sonogram *sonogram, int numberOfFilters, int startFrequency, int frequencyStep) {
     
-    sonogram->index = 0;
-    sonogram->count = 0;
+    memset(sonogram, 0, sizeof(&sonogram));
     
     sonogram->numberOfFilters = numberOfFilters;
     sonogram->startFrequency = startFrequency;
     sonogram->frequencyStep = frequencyStep;
-    
-    memset(sonogram->mainSonogram, 0, sizeof(&sonogram->mainSonogram));
-    memset(sonogram->copySonogram, 0, sizeof(&sonogram->copySonogram));
     
     for (int i = 0; i < numberOfFilters; i += 1) {
         
         sonogram->goerztelFilters[i] = GoertzelFilter_initialise(GOERTZEL_WINDOW_SIZE, (float)startFrequency + (float) i * (float)frequencyStep, SAMPLES_PER_SECOND);
     
     }
+    
+}
+
+void Sonogram_clearSonogram(Sonogram *sonogram) {
+    
+    memset(sonogram->mainSonogram, 0, sizeof(sonogram->mainSonogram));
     
 }
 
@@ -70,7 +72,7 @@ float Sonogram_getCurrentValue(Sonogram *sonogram, int filter) {
     
 }
 
-void Sonogram_copyMainSonogram(Sonogram *sonogram) {
+void Sonogram_copySonogram(Sonogram *sonogram) {
     
     int copyIndex = sonogram->index;
     
