@@ -26,7 +26,7 @@ LowPassFilter LowPassFilter_initialise(float GAIN, float RATIO) {
 void LowPassFilter_update(AudioSampleType sample, LowPassFilter *lowPassFilter) {
 
     lowPassFilter->xv0 = lowPassFilter->xv1;
-    lowPassFilter->xv1 = (float) abs(sample) / (float) INT16_MAX / lowPassFilter->GAIN;
+    lowPassFilter->xv1 = (float) sample / (float) INT16_MAX / lowPassFilter->GAIN;
     lowPassFilter->yv0 = lowPassFilter->yv1;
     lowPassFilter->yv1 = (lowPassFilter->xv0 + lowPassFilter->xv1) + (lowPassFilter->RATIO * lowPassFilter->yv0);
 
