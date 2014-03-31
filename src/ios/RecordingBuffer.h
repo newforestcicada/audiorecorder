@@ -22,7 +22,9 @@ void RecordingBuffer_initialise(RecordingBuffer *recordingBuffer);
 
 void RecordingBuffer_update(AudioSampleType sample, RecordingBuffer *recordingBuffer);
 
-void RecordingBuffer_copyMainBuffer(RecordingBuffer *recordingBuffer);
+void RecordingBuffer_copyBuffer(RecordingBuffer *recordingBuffer);
+
+void RecordingBuffer_clearBuffer(RecordingBuffer *recordingBuffer);
 
 bool RecordingBuffer_getSample(AudioSampleType *sample, RecordingBuffer *recordingBuffer, int index, int duration);
 

@@ -27,7 +27,13 @@ void RecordingBuffer_update(AudioSampleType sample, RecordingBuffer *recordingBu
 
 }
 
-void RecordingBuffer_copyMainBuffer(RecordingBuffer *recordingBuffer) {
+void RecordingBuffer_clearBuffer(RecordingBuffer *recordingBuffer) {
+    
+    memset(recordingBuffer->mainBuffer, 0, sizeof(recordingBuffer->mainBuffer));
+    
+}
+
+void RecordingBuffer_copyBuffer(RecordingBuffer *recordingBuffer) {
 
     int copyIndex = recordingBuffer->index;
 
