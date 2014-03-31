@@ -1,70 +1,71 @@
 
-//
-//  audioRecorder-plugin.js
-//  AudioRecorder Plugin
-//
-//  Created by acr on 02/03/2014.
-//  Copyright (c) 2014 University of Southampton. All rights reserved.
-//
 
-var audioRecorder = exports;
+    //
+    //  audioRecorder-plugin.js
+    //  AudioRecorder Plugin
+    //
+    //  Created by acr on 02/03/2014.
+    //  Copyright (c) 2014 University of Southampton. All rights reserved.
+    //
 
-var fns = ['initialiseAudioRecorder', 'startAudioRecorder', 'stopAudioRecorder', 'startWhiteNoise', 'stopWhiteNoise', 'startHeterodyne', 'stopHeterodyne', 'getAmplitude', 'getScaledAmplitude', 'getFrequencies', 'getScaledFrequencies', 'getFrequencyColours', 'captureRecording', 'clearBuffers'];
+    var audioRecorder = exports;
 
-// Add functions for each of the plugin callbacks we want to expose
+    var fns = ['initialiseAudioRecorder', 'startAudioRecorder', 'stopAudioRecorder', 'startWhiteNoise', 'stopWhiteNoise', 'startHeterodyne', 'stopHeterodyne', 'getAmplitude', 'getScaledAmplitude', 'getFrequencies', 'getScaledFrequencies', 'getFrequencyColours', 'captureRecording', 'clearBuffers'];
 
-for (var i = 0; i < fns.length; i++) {
+    // Add functions for each of the plugin callbacks we want to expose
 
-    // Wrap in a closure so that we lock in the value of fnName
+    for (var i = 0; i < fns.length; i++) {
 
-    (function () {
+        // Wrap in a closure so that we lock in the value of fnName
 
-        var fnName = fns[i];
+        (function () {
 
-        audioRecorder[fnName] = function (win, fail) {
+            var fnName = fns[i];
 
-            win = win || function () {};
-            fail = fail || function () {};
+            audioRecorder[fnName] = function (win, fail) {
 
-            cordova.exec(win, fail, "AudioRecorder", fnName, [null]);
+                win = win || function () {};
+                fail = fail || function () {};
 
-        };
+                cordova.exec(win, fail, "AudioRecorder", fnName, [null]);
 
-    })();
-}
+            };
 
-audioRecorder.setHeterodyneFrequency = function (frequency, win, fail) {
+        })();
+    }
 
-    win = win || function () {};
-    fail = fail || function () {};
+    audioRecorder.setHeterodyneFrequency = function (frequency, win, fail) {
 
-    frequency = frequency || 15000;
+        win = win || function () {};
+        fail = fail || function () {};
 
-    cordova.exec(win, fail, "AudioRecorder", "setHeterodyneFrequency", [frequency]);
+        frequency = frequency || 15000;
 
-}
+        cordova.exec(win, fail, "AudioRecorder", "setHeterodyneFrequency", [frequency]);
 
-audioRecorder.writeSonogram = function (width, height, duration, win, fail) {
+    }
 
-    win = win || function () {};
-    fail = fail || function () {};
+    audioRecorder.writeSonogram = function (width, height, duration, win, fail) {
 
-    width = width || 320;
-    height = height || 120;
-    duration = duration || 30;
+        win = win || function () {};
+        fail = fail || function () {};
 
-    cordova.exec(win, fail, "AudioRecorder", "writeSonogram", [width, height, duration]);
+        width = width || 320;
+        height = height || 120;
+        duration = duration || 30;
 
-}
+        cordova.exec(win, fail, "AudioRecorder", "writeSonogram", [width, height, duration]);
 
-audioRecorder.writeRecording = function (duration, win, fail) {
+    }
 
-    win = win || function () {};
-    fail = fail || function () {};
+    audioRecorder.writeRecording = function (duration, win, fail) {
 
-    duration = duration || 30;
+        win = win || function () {};
+        fail = fail || function () {};
 
-    cordova.exec(win, fail, "AudioRecorder", "writeRecording", [duration]);
+        duration = duration || 30;
 
-}
+        cordova.exec(win, fail, "AudioRecorder", "writeRecording", [duration]);
+
+    }
 
