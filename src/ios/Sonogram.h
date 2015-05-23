@@ -26,7 +26,7 @@ typedef struct {
 
 void Sonogram_initialise(Sonogram *sonogram, int numberOfFilters, int startFrequency, int frequencyStep);
 
-void Sonogram_update(AudioSampleType sample, Sonogram *sonogram);
+void Sonogram_update(SInt16 sample, Sonogram *sonogram);
 
 void Sonogram_copySonogram(Sonogram *sonogram);
 
