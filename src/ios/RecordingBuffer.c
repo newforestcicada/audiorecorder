@@ -15,7 +15,7 @@ void RecordingBuffer_initialise(RecordingBuffer *recordingBuffer) {
 
 }
 
-void RecordingBuffer_update(AudioSampleType sample, RecordingBuffer *recordingBuffer) {
+void RecordingBuffer_update(SInt16 sample, RecordingBuffer *recordingBuffer) {
 
     recordingBuffer->mainBuffer[recordingBuffer->index++] = sample;
 
@@ -47,13 +47,13 @@ void RecordingBuffer_copyBuffer(RecordingBuffer *recordingBuffer) {
 
     int secondSectionLength = RECORDING_BUFFER_LENGTH - firstSectionLength;
 
-    memcpy(recordingBuffer->copyBuffer, &recordingBuffer->mainBuffer[firstSectionLength], secondSectionLength * sizeof(AudioSampleType));
+    memcpy(recordingBuffer->copyBuffer, &recordingBuffer->mainBuffer[firstSectionLength], secondSectionLength * sizeof(SInt16));
 
-    memcpy(&recordingBuffer->copyBuffer[secondSectionLength], recordingBuffer->mainBuffer, firstSectionLength * sizeof(AudioSampleType));
+    memcpy(&recordingBuffer->copyBuffer[secondSectionLength], recordingBuffer->mainBuffer, firstSectionLength * sizeof(SInt16));
 
 }
 
-bool RecordingBuffer_getSample(AudioSampleType *sample, RecordingBuffer *recordingBuffer, int index, int duration) {
+bool RecordingBuffer_getSample(SInt16 *sample, RecordingBuffer *recordingBuffer, int index, int duration) {
 
     UInt32 numberOfSamples = SAMPLES_PER_SECOND * duration;
 
@@ -91,7 +91,7 @@ OSStatus RecordingBuffer_writeRecording(AudioFileID *audioFile, RecordingBuffer 
 
     }
 
-    UInt32 bytesToWrite = samplesToWrite * sizeof(AudioSampleType);
+    UInt32 bytesToWrite = samplesToWrite * sizeof(SInt16);
 
     return AudioFileWriteBytes(*audioFile, false, 0, &bytesToWrite, &recordingBuffer->copyBuffer[RECORDING_BUFFER_LENGTH - samplesToWrite]);
 

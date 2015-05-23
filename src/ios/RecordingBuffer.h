@@ -14,19 +14,19 @@
 
 typedef struct {
     int index;
-    AudioSampleType mainBuffer[RECORDING_BUFFER_LENGTH];
-    AudioSampleType copyBuffer[RECORDING_BUFFER_LENGTH];
+    SInt16 mainBuffer[RECORDING_BUFFER_LENGTH];
+    SInt16 copyBuffer[RECORDING_BUFFER_LENGTH];
 } RecordingBuffer;
 
 void RecordingBuffer_initialise(RecordingBuffer *recordingBuffer);
 
-void RecordingBuffer_update(AudioSampleType sample, RecordingBuffer *recordingBuffer);
+void RecordingBuffer_update(SInt16 sample, RecordingBuffer *recordingBuffer);
 
 void RecordingBuffer_copyBuffer(RecordingBuffer *recordingBuffer);
 
 void RecordingBuffer_clearBuffer(RecordingBuffer *recordingBuffer);
 
-bool RecordingBuffer_getSample(AudioSampleType *sample, RecordingBuffer *recordingBuffer, int index, int duration);
+bool RecordingBuffer_getSample(SInt16 *sample, RecordingBuffer *recordingBuffer, int index, int duration);
 
 OSStatus RecordingBuffer_writeRecording(AudioFileID *audioFile, RecordingBuffer *recordingBuffer, int duration);
 

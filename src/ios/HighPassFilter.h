@@ -19,6 +19,6 @@ typedef struct {
 
 HighPassFilter HighPassFilter_initialise(float GAIN, float RATIO);
 
-void HighPassFilter_update(AudioSampleType sample, HighPassFilter *highPassFilter);
+void HighPassFilter_update(SInt16 sample, HighPassFilter *highPassFilter);
 
 float HighPassFilter_output(HighPassFilter *highPassFilter);

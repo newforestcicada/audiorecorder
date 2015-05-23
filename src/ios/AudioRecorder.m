@@ -213,7 +213,7 @@ static BOOL CheckError(OSStatus error, const char *operation) {
 
     myASBD.mSampleRate = 44100;
     myASBD.mFormatID = kAudioFormatLinearPCM;
-    myASBD.mFormatFlags = kAudioFormatFlagsCanonical;
+    myASBD.mFormatFlags = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagsNativeEndian | kAudioFormatFlagIsPacked;
     myASBD.mBytesPerPacket = 2;
     myASBD.mFramesPerPacket = 1;
     myASBD.mBytesPerFrame = 2;
@@ -510,8 +510,8 @@ static OSStatus InputModulatingRenderCallback(void *inRefCon, AudioUnitRenderAct
 
     CheckError(AudioUnitRender(audioRecorderState->rioUnit, ioActionFlags, inTimeStamp, bus1, inNumberFrames, ioData), "Couldn't render from RemoteIO unit");
 
-    AudioSampleType sample = 0;
-    AudioSampleType silent = 0;
+    SInt16 sample = 0;
+    SInt16 silent = 0;
 
     UInt32 bytesPerChannel = audioRecorderState->asbd.mBytesPerFrame / audioRecorderState->asbd.mChannelsPerFrame;
 
@@ -525,29 +525,29 @@ static OSStatus InputModulatingRenderCallback(void *inRefCon, AudioUnitRenderAct
 
             for (int currentChannel = 0; currentChannel < buf.mNumberChannels; currentChannel++) {
 
-                memcpy(&sample, buf.mData + (currentFrame * audioRecorderState->asbd.mBytesPerFrame) + (currentChannel * bytesPerChannel), sizeof(AudioSampleType));
+                memcpy(&sample, buf.mData + (currentFrame * audioRecorderState->asbd.mBytesPerFrame) + (currentChannel * bytesPerChannel), sizeof(SInt16));
 
                 Sonogram_update(sample, &audioRecorderState->songram);
                 LowPassFilter_update(abs(sample), &audioRecorderState->lowPassFilter);
                 RecordingBuffer_update(sample, &audioRecorderState->recordingBuffer);
 
-                AudioSampleType *outputSample = &silent;
+                SInt16 *outputSample = &silent;
 
                 if (audioRecorderState->output == WHITE_NOISE) {
 
-                    AudioSampleType random = rand();
+                    SInt16 random = rand();
 
                     outputSample = &random;
 
                 } else if (audioRecorderState->output == HETERODYNE) {
 
-                    AudioSampleType heterodyne = HeterodyneDetector_update(sample, &audioRecorderState->heterodyneDetector);
+                    SInt16 heterodyne = HeterodyneDetector_update(sample, &audioRecorderState->heterodyneDetector);
 
                     outputSample = &heterodyne;
 
                 }
 
-                memcpy(buf.mData + (currentFrame * audioRecorderState->asbd.mBytesPerFrame) + (currentChannel * bytesPerChannel), outputSample, sizeof(AudioSampleType));
+                memcpy(buf.mData + (currentFrame * audioRecorderState->asbd.mBytesPerFrame) + (currentChannel * bytesPerChannel), outputSample, sizeof(SInt16));
 
             }
 

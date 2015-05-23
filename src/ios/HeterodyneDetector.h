@@ -27,4 +27,4 @@ HeterodyneDetector HeterodyneDetector_initialise(float frequency, float sampling
 
 void HeterodyneDetector_setFrequency(float frequency, HeterodyneDetector *heterodyneDetector);
 
-AudioSampleType HeterodyneDetector_update(AudioSampleType sample, HeterodyneDetector *heterodyneDetector);
+SInt16 HeterodyneDetector_update(SInt16 sample, HeterodyneDetector *heterodyneDetector);

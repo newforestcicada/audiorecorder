@@ -36,7 +36,7 @@ GoertzelFilter GoertzelFilter_initialise(int N, double centralFrequency, double 
 
 }
 
-void GoertzelFilter_update(AudioSampleType sample, GoertzelFilter *goertzelFilter) {
+void GoertzelFilter_update(SInt16 sample, GoertzelFilter *goertzelFilter) {
 
     goertzelFilter->y = goertzelFilter->hammingFactor[goertzelFilter->index] * sample + goertzelFilter->realW * goertzelFilter->d1 - goertzelFilter->d2;
     goertzelFilter->d2 = goertzelFilter->d1;

@@ -34,7 +34,7 @@ void Sonogram_clearSonogram(Sonogram *sonogram) {
     
 }
 
-void Sonogram_update(AudioSampleType sample, Sonogram *sonogram) {
+void Sonogram_update(SInt16 sample, Sonogram *sonogram) {
     
     for (int i = 0; i < sonogram->numberOfFilters; i += 1) {
         

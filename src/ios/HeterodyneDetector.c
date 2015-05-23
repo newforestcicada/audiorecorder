@@ -50,7 +50,7 @@ void HeterodyneDetector_setFrequency(float frequency, HeterodyneDetector *hetero
 
 }
 
-AudioSampleType HeterodyneDetector_update(AudioSampleType sample, HeterodyneDetector *heterodyneDetector) {
+SInt16 HeterodyneDetector_update(SInt16 sample, HeterodyneDetector *heterodyneDetector) {
 
     HighPassFilter_update(sample, &heterodyneDetector->preMixingHighPassFilter);
 
@@ -64,15 +64,15 @@ AudioSampleType HeterodyneDetector_update(AudioSampleType sample, HeterodyneDete
 
     //float output = (float)sample * heterodyneDetector->realPart * 100.0f;
 
-    LowPassFilter_update((AudioSampleType) output, &heterodyneDetector->postMixingLowPassFilter);
+    LowPassFilter_update((SInt16) output, &heterodyneDetector->postMixingLowPassFilter);
 
     output = LowPassFilter_output(&heterodyneDetector->postMixingLowPassFilter) * (float) INT16_MAX;
 
-    HighPassFilter_update((AudioSampleType) output, &heterodyneDetector->dcRemovingHighPassFilter);
+    HighPassFilter_update((SInt16) output, &heterodyneDetector->dcRemovingHighPassFilter);
 
     output = HighPassFilter_output(&heterodyneDetector->dcRemovingHighPassFilter) * (float) INT16_MAX;
 
-    return (AudioSampleType) output;
+    return (SInt16) output;
 
 }
 

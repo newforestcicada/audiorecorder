@@ -23,7 +23,7 @@ LowPassFilter LowPassFilter_initialise(float GAIN, float RATIO) {
 
 }
 
-void LowPassFilter_update(AudioSampleType sample, LowPassFilter *lowPassFilter) {
+void LowPassFilter_update(SInt16 sample, LowPassFilter *lowPassFilter) {
 
     lowPassFilter->xv0 = lowPassFilter->xv1;
     lowPassFilter->xv1 = (float) sample / (float) INT16_MAX / lowPassFilter->GAIN;

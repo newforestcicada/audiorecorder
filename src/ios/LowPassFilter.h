@@ -19,6 +19,6 @@ typedef struct {
 
 LowPassFilter LowPassFilter_initialise(float GAIN, float RATIO);
 
-void LowPassFilter_update(AudioSampleType sample, LowPassFilter *lowPassFilter);
+void LowPassFilter_update(SInt16 sample, LowPassFilter *lowPassFilter);
 
 float LowPassFilter_output(LowPassFilter *lowPassFilter);

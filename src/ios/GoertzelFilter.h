@@ -26,7 +26,7 @@ typedef struct {
 
 GoertzelFilter GoertzelFilter_initialise(int N, double centralFrequency, double samplingFreqency);
 
-void GoertzelFilter_update(AudioSampleType sample, GoertzelFilter *goertzelFilter);
+void GoertzelFilter_update(SInt16 sample, GoertzelFilter *goertzelFilter);
 
 float GoertzelFilter_estimate(GoertzelFilter *goertzelFilter);
 

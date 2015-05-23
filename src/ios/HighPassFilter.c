@@ -23,7 +23,7 @@ HighPassFilter HighPassFilter_initialise(float GAIN, float RATIO) {
 
 }
 
-void HighPassFilter_update(AudioSampleType sample, HighPassFilter *highPassFilter) {
+void HighPassFilter_update(SInt16 sample, HighPassFilter *highPassFilter) {
 
     highPassFilter->xv0 = highPassFilter->xv1;
     highPassFilter->xv1 = (float) sample / (float) INT16_MAX / highPassFilter->GAIN;
