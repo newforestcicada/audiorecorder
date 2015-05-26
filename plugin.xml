@@ -1,4 +1,4 @@
- <?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
     <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
             id="info.newforestcicada.audiorecorder" version="0.1.0">
         <name>AudioRecorder</name>
@@ -14,6 +14,7 @@
                     <param name="onload" value="true"/>
                 </feature>
             </config-file>
+            
             <framework src="AudioToolbox.framework" />
             <framework src="CoreAudio.framework" />
             <header-file src="src/ios/AudioRecorder.h" />
@@ -36,6 +37,49 @@
             <source-file src="src/ios/HighPassFilter.c" /> 
             <source-file src="src/ios/KalmanFilter.c" />
             <source-file src="src/ios/LowPassFilter.c" />
-            <source-file src="src/ios/RecordingBuffer.c" /> 
+            <source-file src="src/ios/RecordingBuffer.c" />
+            
+        </platform>
+        
+         <!-- android -->
+        <platform name="android">
+            <config-file target="res/xml/config.xml" parent="/*">
+                <feature name="AudioRecorder">
+                    <param name="android-package" value="info.newforestcicada.audiorecorder.plugin.RecorderPlugin" />
+                </feature>
+            </config-file>
+            
+            <config-file target="AndroidManifest.xml" parent="/*">
+                <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+                <uses-permission android:name="android.permission.RECORD_AUDIO" />
+            </config-file>
+            
+            <config-file target="res/values/strings.xml" parent="/*">
+                <string name="MEANS">distribution_means</string>
+                <string name="VARS">distribution_variances</string>
+            </config-file>
+            
+            
+            <source-file src="src/android/Emission.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/Kalman.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/LongTermResult.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/Baselines.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/AudioAnalyser.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/Hmm.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/GetTask.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/Goertzel.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/RecorderPlugin.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/insects/RoeselsBushCricket.java" target-dir="src/info/newforestcicada/plugin/insects" />
+            <source-file src="src/android/insects/Insect.java" target-dir="src/info/newforestcicada/plugin/insects" />
+            <source-file src="src/android/insects/Cicada.java" target-dir="src/info/newforestcicada/plugin/insects" />
+            <source-file src="src/android/insects/NullInsect.java" target-dir="src/info/newforestcicada/plugin/insects" />
+            <source-file src="src/android/insects/WoodCricket.java" target-dir="src/info/newforestcicada/plugin/insects" />
+            <source-file src="src/android/insects/DarkBushCricket.java" target-dir="src/info/newforestcicada/plugin/insects" />
+            <source-file src="src/android/insects/CommonFieldGrasshopper.java" target-dir="src/info/newforestcicada/plugin/insects" />
+            
+            <!--
+            <source-file src="src/android/*.java" target-dir="src/info/newforestcicada/audiorecorder/plugin/" />
+            <source-file src="src/android/insects/*.java" target-dir="src/info/newforestcicada/audiorecorder/plugin/insects/" />
+            -->
         </platform>
     </plugin>

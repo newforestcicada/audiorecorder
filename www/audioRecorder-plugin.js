@@ -10,7 +10,11 @@
 
     var audioRecorder = exports;
 
-    var fns = ['initialiseAudioRecorder', 'startAudioRecorder', 'stopAudioRecorder', 'startWhiteNoise', 'stopWhiteNoise', 'startHeterodyne', 'stopHeterodyne', 'getAmplitude', 'getScaledAmplitude', 'getFrequencies', 'getScaledFrequencies', 'getFrequencyColours', 'captureRecording', 'clearBuffers'];
+    var fns = ['initialiseAudioRecorder', 'startAudioRecorder', 'stopAudioRecorder', 
+               'startWhiteNoise', 'stopWhiteNoise', 
+               'startHeterodyne', 'stopHeterodyne', 
+               'getAmplitude', 'getScaledAmplitude', 'getFrequencies', 'getScaledFrequencies', 'getFrequencyColours', 
+               'captureRecording', 'clearBuffers'];
 
     // Add functions for each of the plugin callbacks we want to expose
 
