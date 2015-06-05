@@ -66,6 +66,7 @@
             <source-file src="src/android/Goertzel.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
             <source-file src="src/android/RecorderPlugin.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
             <source-file src="src/android/Spectrogram.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/Heterodyne.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
             
             <!--
             <source-file src="src/android/*.java" target-dir="src/info/newforestcicada/audiorecorder/plugin/" />
