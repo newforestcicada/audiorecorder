@@ -40,7 +40,10 @@ public class RecorderPlugin extends CordovaPlugin {
 	private int tBufferSize;
 	private int bufferIndex;
 	private int maxIndex = 0;
-	//private int mAudioFormat;
+	private short[] mRecordBuffer;
+	private float[] mHeterodyneBuffer;
+	private int hetIndex;
+
 	private int mSampleRate;
 
 	private static final String TAG = RecorderPlugin.class.getSimpleName();
@@ -51,18 +54,21 @@ public class RecorderPlugin extends CordovaPlugin {
 	private boolean mIsSurveying = false;
 
 	private AudioAnalyser mAnalyser;
-	private short[] mRecordBuffer = null;
+
 	private LowPassFilter mLowPassFilter;
 	private AudioTrack mAudioPlayer;
 	private Timer mSurveyTimer;
+	private Heterodyne mHeterodyne;
 
 	public static final SimpleDateFormat df = new SimpleDateFormat(
 			"yyyyMMdd'T'HHmmss", Locale.UK);
 
 	public static final int mChannelCount = 1;
 	private int sampleRate = 44100;
-	private int heterodyneFrequency = 15000;
+	private int mHeterodyneFrequency = 15000;
+
 	private Spectrogram mSpectrogram;
+
 
 	/**
 	 * The only method ever to be called from the javascript interface.
@@ -152,6 +158,10 @@ public class RecorderPlugin extends CordovaPlugin {
 			startHeterodyne(callbackContext);
 			return true;
 		}
+		if ("stopHeterodyne".equals(action)) {
+			stopHeterodyne(callbackContext);
+			return true;
+		}
 		if ("activateGPS".equals(action)) {
 			activateGPS();
 			callbackContext.success();
@@ -159,13 +169,8 @@ public class RecorderPlugin extends CordovaPlugin {
 		}
 
 
-		Log.e(TAG, "Calling unknown action "+action);
+		Log.e(TAG, "Calling unknown action " + action);
 		return false; // Returning false results in a "MethodNotFound" error.
-	}
-
-	private void startHeterodyne(CallbackContext callbackContext) {
-		Log.w(TAG, "Heterodyne not currently implemented.");
-		callbackContext.success();
 	}
 
 	private void writeSpectrogram(int width, int height, int recLength, CallbackContext callbackContext) {
@@ -230,6 +235,10 @@ public class RecorderPlugin extends CordovaPlugin {
 
 			mAnalyser = new AudioAnalyser(this.cordova.getActivity()
 					.getApplicationContext());
+
+			mHeterodyne = new Heterodyne(mHeterodyneFrequency, sampleRate);
+			
+
 			Log.i(TAG, "Recorder started");
 
 			mIsRecording = true;
@@ -244,10 +253,15 @@ public class RecorderPlugin extends CordovaPlugin {
 						for (int i = 0; i < numRead; i++) {
 							short sample = tBuffer[i];
 							mAnalyser.updateWithSoundInputValue((float) sample);
+
 							mLowPassFilter.update((float) sample);
+
 							mRecordBuffer[bufferIndex] = sample;
 							bufferIndex = (bufferIndex + 1) % mRecordBuffer.length;
 							maxIndex = Math.min(++maxIndex, mRecordBuffer.length);
+
+							mHeterodyneBuffer[hetIndex] = mHeterodyne.updateWithSample((float) sample);
+							hetIndex = (hetIndex + 1) % mHeterodyneBuffer.length;
 						}
 					}
 				}
@@ -406,11 +420,12 @@ public class RecorderPlugin extends CordovaPlugin {
 				this.tBufferSize = minBufferSize;
 				this.tBufferSize = 128;
 				//this.mAudioFormat = encoding;
-				this.mSampleRate = sampleRate;
+				mSampleRate = sampleRate;
 
 				Log.i(TAG, "Buffer size: " + this.tBufferSize);
 
-				this.mRecordBuffer = new short[sampleRate * REC_SECONDS];
+				mRecordBuffer = new short[sampleRate * REC_SECONDS];
+				mHeterodyneBuffer = new float[sampleRate * 1]; // 1 sec
 
 				return record;
 			}
@@ -480,6 +495,81 @@ public class RecorderPlugin extends CordovaPlugin {
 	 * A call to {@link #startWhiteNoise} is sufficient to restart the noise.
 	 */
 	private void stopWhiteNoise(CallbackContext callbackContext) {
+		try {
+			mIsPlaying = false;
+			mAudioPlayer.stop();
+			mAudioPlayer.release();
+			mAudioPlayer = null;
+		} catch (NullPointerException e) {
+			;
+		}
+		callbackContext.success();
+	}
+
+
+	private void startHeterodyne(CallbackContext callbackContext) {
+
+		final int numSamples = mHeterodyneBuffer.length;
+
+		mAudioPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate,
+				AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
+				numSamples, AudioTrack.MODE_STREAM);
+
+		mIsPlaying = true;
+		cordova.getThreadPool().execute(new Runnable() {
+
+			public void run() {
+				while (mIsPlaying) {
+
+					float[] heterodyneBuffer;
+					int tempHetIndex;
+
+					synchronized (mHeterodyneBuffer) {
+						heterodyneBuffer = mHeterodyneBuffer.clone();
+						tempHetIndex = hetIndex;
+					}
+
+					byte generatedSnd[] = new byte[2 * heterodyneBuffer.length];
+
+
+					int idx = 0;
+					float dVal;
+					//for (final float dVal : mHeterodyneBuffer) {
+					for (int i=tempHetIndex; i<heterodyneBuffer.length; i++) {
+						// scale to maximum amplitude
+						dVal = heterodyneBuffer[tempHetIndex];
+						final short val = (short) ((dVal * Short.MAX_VALUE));
+						// in 16 bit wav PCM, first byte is the low order byte
+						generatedSnd[idx++] = (byte) (val & 0x00ff);
+						generatedSnd[idx++] = (byte) ((val & 0xff00) >>> 8);
+					}
+
+					for (int i=0; i<tempHetIndex; i++) {
+						// scale to maximum amplitude
+						dVal = heterodyneBuffer[tempHetIndex];
+						final short val = (short) ((dVal * Short.MAX_VALUE));
+						// in 16 bit wav PCM, first byte is the low order byte
+						generatedSnd[idx++] = (byte) (val & 0x00ff);
+						generatedSnd[idx++] = (byte) ((val & 0xff00) >>> 8);
+					}
+
+					Log.d(TAG, "playing");
+					mAudioPlayer.write(generatedSnd, 0, generatedSnd.length);
+
+				}
+			}
+		});
+
+		try {
+			mAudioPlayer.play();
+			callbackContext.success();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	private void stopHeterodyne(CallbackContext callbackContext) {
 		try {
 			mIsPlaying = false;
 			mAudioPlayer.stop();
@@ -693,9 +783,8 @@ public class RecorderPlugin extends CordovaPlugin {
 		callbackContext.success(df.format(new Date())+".png");
 	}
 
-	public void setHeterodyneFrequency(CallbackContext callbackContext, int freq) {
-		this.heterodyneFrequency = freq;
-		Log.w(TAG, "Heterodyne not currently implemented.");
+	private void setHeterodyneFrequency(CallbackContext callbackContext, int freq) {
+		mHeterodyneFrequency = freq;
 		callbackContext.success();
 	}
 
