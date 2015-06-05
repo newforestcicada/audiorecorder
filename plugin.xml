@@ -60,22 +60,11 @@
             </config-file>
             
             
-            <source-file src="src/android/Emission.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
             <source-file src="src/android/Kalman.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
-            <source-file src="src/android/LongTermResult.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
             <source-file src="src/android/Baselines.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
             <source-file src="src/android/AudioAnalyser.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
-            <source-file src="src/android/Hmm.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
-            <source-file src="src/android/GetTask.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
             <source-file src="src/android/Goertzel.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
             <source-file src="src/android/RecorderPlugin.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
-            <source-file src="src/android/insects/RoeselsBushCricket.java" target-dir="src/info/newforestcicada/plugin/insects" />
-            <source-file src="src/android/insects/Insect.java" target-dir="src/info/newforestcicada/plugin/insects" />
-            <source-file src="src/android/insects/Cicada.java" target-dir="src/info/newforestcicada/plugin/insects" />
-            <source-file src="src/android/insects/NullInsect.java" target-dir="src/info/newforestcicada/plugin/insects" />
-            <source-file src="src/android/insects/WoodCricket.java" target-dir="src/info/newforestcicada/plugin/insects" />
-            <source-file src="src/android/insects/DarkBushCricket.java" target-dir="src/info/newforestcicada/plugin/insects" />
-            <source-file src="src/android/insects/CommonFieldGrasshopper.java" target-dir="src/info/newforestcicada/plugin/insects" />
             
             <!--
             <source-file src="src/android/*.java" target-dir="src/info/newforestcicada/audiorecorder/plugin/" />
