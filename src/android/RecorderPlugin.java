@@ -1,31 +1,5 @@
 package info.newforestcicada.audiorecorder.plugin;
 
-//import AudioAnalyser;
-//import info.newforestcicada.audiorecorder.plugin.GetTask;
-//import info.newforestcicada.audiorecorder.plugin.RecorderPlugin.LowPassFilter;
-//import info.newforestcicada.audiorecorder.plugin.Hmm.HmmResult;
-//import info.newforestcicada.audiorecorder.plugin.insects.Cicada;
-//import info.newforestcicada.audiorecorder.plugin.insects.Insect;
-
-import info.newforestcicada.plugin.insects.Insect;
-
-import java.io.File;
-import java.io.RandomAccessFile;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map.Entry;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import org.apache.cordova.CallbackContext;
-import org.apache.cordova.CordovaPlugin;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -38,12 +12,30 @@ import android.media.AudioTrack;
 import android.media.MediaRecorder.AudioSource;
 import android.os.Environment;
 import android.util.Log;
+import android.view.WindowManager;
+
+import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaPlugin;
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * This class echoes a string called from JavaScript.
  */
 public class RecorderPlugin extends CordovaPlugin {
 
+	private static final int REC_SECONDS = 30;
+	private static final int UPDATE_RATE = 100;
 	private AudioRecord mRecorder;
 	private int tBufferSize;
 	private int bufferIndex;
@@ -51,7 +43,8 @@ public class RecorderPlugin extends CordovaPlugin {
 	//private int mAudioFormat;
 	private int mSampleRate;
 
-	private static final String TAG = "CicadaDetector";
+	private static final String TAG = RecorderPlugin.class.getSimpleName();
+	public static final String SUBDIR = "AudioRecorder";
 
 	private boolean mIsRecording = false;
 	private boolean mIsPlaying = false;
@@ -67,6 +60,9 @@ public class RecorderPlugin extends CordovaPlugin {
 			"yyyyMMdd'T'HHmmss", Locale.UK);
 
 	public static final int mChannelCount = 1;
+	private int sampleRate = 44100;
+	private int heterodyneFrequency = 15000;
+	private Spectrogram mSpectrogram;
 
 	/**
 	 * The only method ever to be called from the javascript interface.
@@ -84,7 +80,7 @@ public class RecorderPlugin extends CordovaPlugin {
 	public boolean execute(String action, JSONArray args,
 			CallbackContext callbackContext) throws JSONException {
 
-		if ("initialiseAudioDetector".equals(action)) {
+		if ("initialiseAudioRecorder".equals(action)) {
 			this.initialiseAudioRecorder(callbackContext);
 			return true;
 		}
@@ -105,17 +101,25 @@ public class RecorderPlugin extends CordovaPlugin {
 			callbackContext.success(new JSONArray(getFrequencies()));
 			return true;
 		}
-		if ("getInsects".equals(action)) {
-			this.getInsects(callbackContext);
+
+		if ("getFrequencyColours".equals(action)) {
+			callbackContext.success(new JSONArray(getFrequencieColours()));
+			return true;
 		}
-		if ("getAmplitude".equals(action)) {
+		if ("getScaledFrequencies".equals(action)) {
+			callbackContext.success(new JSONArray(getFrequencies()));
+			return true;
+		}
+
+		if ("getScaledAmplitude".equals(action)) {
 			callbackContext.success(String.valueOf(getAmplitude()));
 			return true;
 		}
-		if ("getCicada".equals(action)) {
-			callbackContext.success(String.valueOf(getCicada()));
+		if ("clearBuffers".equals(action)) {
+			Log.i(TAG, "clearBuffers not implemented");
 			return true;
 		}
+
 		if ("startWhiteNoise".equals(action)) {
 			this.startWhiteNoise(callbackContext);
 			return true;
@@ -124,26 +128,58 @@ public class RecorderPlugin extends CordovaPlugin {
 			this.stopWhiteNoise(callbackContext);
 			return true;
 		}
+		if ("captureRecording".equals(action)) {
+
+			this.captureRecording(callbackContext);
+			return true;
+		}
 		if ("writeRecording".equals(action)) {
 			this.writeRecording(callbackContext, args.getInt(0));
+			return true;
 		}
-//		if ("startSurvey".equals(action)) {
-//			this.startSurvey(callbackContext);
-//		}
-//		if ("stopSurvey".equals(action)) {
-//			Log.e("STOP", "Trying to stop survey, length " + args.length());
-//			int width;
-//			int height;
-//			if (args.length() <= 1) {
-//				width = 300;
-//				height = 200;
-//			} else {
-//				width = args.getInt(0);
-//				height = args.getInt(1);
-//			}
-//			this.stopSurvey(callbackContext, width, height);
-//		}
+
+		if ("writeSonogram".equals(action)) {
+			this.writeSpectrogram(args.getInt(0), args.getInt(1), args.getInt(2), callbackContext);
+			return true;
+		}
+
+		if ("setHeterodyneFrequency".equals(action)) {
+			setHeterodyneFrequency(callbackContext, args.getInt(0));
+			return true;
+		}
+
+		if ("startHeterodyne".equals(action)) {
+			startHeterodyne(callbackContext);
+			return true;
+		}
+		if ("activateGPS".equals(action)) {
+			activateGPS();
+			callbackContext.success();
+			return true;
+		}
+
+
+		Log.e(TAG, "Calling unknown action "+action);
 		return false; // Returning false results in a "MethodNotFound" error.
+	}
+
+	private void startHeterodyne(CallbackContext callbackContext) {
+		Log.w(TAG, "Heterodyne not currently implemented.");
+		callbackContext.success();
+	}
+
+	private void writeSpectrogram(int width, int height, int recLength, CallbackContext callbackContext) {
+		Log.i("TAG", "Sonogram:: width: " + width + ", height: " + height + " recLength: " + recLength);
+
+		//stopSurvey(width, height, recLength);
+
+		/** now create the bitmap file */
+		//String[] sonogram_created = mAnalyser.createSonogram(width, height, recLength);
+		String[] sonogram_created = mSpectrogram.write(width, height, recLength);
+		String fullpath = sonogram_created[0];
+		String b64spectrogram = sonogram_created[1];
+
+		callbackContext.success(b64spectrogram);
 	}
 
 	/**
@@ -154,8 +190,27 @@ public class RecorderPlugin extends CordovaPlugin {
 	 */
 	private void initialiseAudioRecorder(CallbackContext callbackContext) {
 		Log.i("initialiseAudioRecorder", "Recorder initialised");
+		startDetector(callbackContext);
 		
-		callbackContext.success();
+		//callbackContext.success();
+	}
+
+	public void keepScreenOn(){
+		cordova.getActivity().runOnUiThread(new Runnable() {
+			public void run() {
+				cordova.getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+				Log.d(TAG, "Screen will be kept on. KeepScreenOn");
+			}
+		});
+	}
+
+	public void clearScreenOn() {
+		cordova.getActivity().runOnUiThread(new Runnable() {
+			public void run() {
+				cordova.getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+				Log.d(TAG, "Screen is not allowed to sleep.");
+			}
+		});
 	}
 	
 	/**
@@ -163,81 +218,77 @@ public class RecorderPlugin extends CordovaPlugin {
 	 */
 	private void startDetector(CallbackContext callbackContext) {
 
-		mLowPassFilter = new LowPassFilter((float) 1.404746361e+03,
-				(float) 0.9985762554);
-		mRecorder = setupRecorder();
-		mRecorder.startRecording();
+		keepScreenOn();
 
-//		mAnalyser = new AudioAnalyser(this.cordova.getActivity()
-//				.getApplicationContext());
-		Log.i(TAG, "Recorder started");
+		if (mIsRecording) {
+			Log.i(TAG, "Detector already initialised");
+		} else {
+			mLowPassFilter = new LowPassFilter((float) 1.404746361e+03,
+					(float) 0.9985762554);
+			mRecorder = setupRecorder();
+			mRecorder.startRecording();
 
-		mIsRecording = true;
-		cordova.getThreadPool().execute(new Runnable() {
-			public void run() {
+			mAnalyser = new AudioAnalyser(this.cordova.getActivity()
+					.getApplicationContext());
+			Log.i(TAG, "Recorder started");
 
-				short[] tBuffer = new short[tBufferSize];
+			mIsRecording = true;
+			cordova.getThreadPool().execute(new Runnable() {
+				public void run() {
 
-				while (mIsRecording) {
-					int numRead = mRecorder.read(tBuffer, 0, tBufferSize);
+					short[] tBuffer = new short[tBufferSize];
 
-					for (int i = 0; i < numRead; i++) {
-						short sample = tBuffer[i];
-//						mAnalyser.updateWithSoundInputValue((float) sample);
-//						mLowPassFilter.update((float) sample);
-						mRecordBuffer[bufferIndex] = sample;
-						bufferIndex = (bufferIndex + 1) % mRecordBuffer.length;
-						maxIndex = Math.min(++maxIndex, mRecordBuffer.length);
+					while (mIsRecording) {
+						int numRead = mRecorder.read(tBuffer, 0, tBufferSize);
+
+						for (int i = 0; i < numRead; i++) {
+							short sample = tBuffer[i];
+							mAnalyser.updateWithSoundInputValue((float) sample);
+							mLowPassFilter.update((float) sample);
+							mRecordBuffer[bufferIndex] = sample;
+							bufferIndex = (bufferIndex + 1) % mRecordBuffer.length;
+							maxIndex = Math.min(++maxIndex, mRecordBuffer.length);
+						}
 					}
 				}
-			}
-		});
-		callbackContext.success();
+			});
+
+
+			startSurvey();
+
+			callbackContext.success();
+		}
+
+
 	}
 	
 
 	/**
 	 * Gracefully stop and destroy the audio recording system.
 	 * 
-	 * A call to {@link #startDetector()} is sufficient to restart the process.
+	 * A call to {@link #startDetector(CallbackContext)} is sufficient to restart the process.
 	 */
 	private void stopDetector(CallbackContext callbackContext) {
 
 		mIsRecording = false;
 		try {
+
+			stopSurvey();
+
 			mRecorder.stop();
 			mRecorder.release();
 			mRecorder = null;
 
-			// mAnalyser = null;
+			mAnalyser = null;
 			Log.i(TAG, "detector stopped");
 		} catch (NullPointerException e) {
 			Log.i(TAG, "detector already stopped");
 		}
+
+		clearScreenOn();
 		callbackContext.success();
 	}
 
-//	/**
-//	 * Initialise the audio system.
-//	 * 
-//	 * This should be called before any other call to the audio system is made,
-//	 * including detecting the cicada or requesting an amplitude value.
-//	 */
-//	public void initialiseDetector(CallbackContext callbackContext) {
-//		String phoneModel = android.os.Build.MODEL;
-//		Log.i(TAG, "Model: " + phoneModel);
-//		Log.i(TAG, "recorder initialised");
-//		activateGPS();
-//		getEmissionsUpdate();
-//		callbackContext.success();
-//	}
-		
-	private void getEmissionsUpdate(){
-		
-		new GetTask(this.cordova.getActivity()
-				.getApplicationContext()).execute();
-		
-	}
 	
 	/** Activate GPS */
 	private void activateGPS(){
@@ -284,22 +335,19 @@ public class RecorderPlugin extends CordovaPlugin {
 	 * @return a single floating point value between 0 and 1.
 	 */
 	private float getAmplitude() {
+
 		try {
-			float val = mLowPassFilter.getValue() / 20000;
+			float val = mLowPassFilter.getValue() / 2000;
+
 			if (val > 1.0) {
 				val = 1;
 			}
+
 			return val;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return (float) 0;
-		/*
-		 * short[] tBuffer = new short[tBufferSize]; mRecorder.read(tBuffer, 0,
-		 * tBufferSize); double sum = 0; double max = 0; for (short s : tBuffer)
-		 * { sum += Math.abs(s); if (s > max) { max = s; } } double ampl = sum /
-		 * tBuffer.length; sum /= 1e7; if (sum > 1.0) { sum = 1.0; } return sum;
-		 */
 
 	}
 
@@ -319,7 +367,7 @@ public class RecorderPlugin extends CordovaPlugin {
 			 * 0, tBufferSize); for (float sample : tBuffer) {
 			 * mAnalyser.updateWithSoundInputValue(sample); }
 			 */
-			ArrayList<Float> freqs = mAnalyser.getFrequencies();
+			ArrayList<Float> freqs = Spectrogram.getFrequencies(mAnalyser.getGoertzels());
 			return freqs;
 		} catch (NullPointerException e) {
 			// Log.e(TAG, "CD::getFrequencies NPEX"+e.toString());
@@ -330,27 +378,9 @@ public class RecorderPlugin extends CordovaPlugin {
 		}
 	}
 
-	@Deprecated
-	/**
-	 * Get the estimate of the presence of the cicada, in a float value between
-	 * 0 and 1.
-	 * 
-	 * @return the estimated value
-	 */
-	private double getCicada() {
-		try {
+	private ArrayList<String> getFrequencieColours() {
 
-			HashMap<Insect, Float> insects = mAnalyser.getInsectsEstimates();
-			for (Entry<Insect, Float> entry : insects.entrySet()) {
-				if (entry.getKey().getId() == 0) {
-					return entry.getValue();
-				}
-			}
-		} catch (NullPointerException e) {
-			// Log.d(TAG, "0");
-			return 0;
-		}
-		return 0;
+		return Spectrogram.getFrequencyColours(mAnalyser.getGoertzels());
 	}
 
 	/**
@@ -362,7 +392,7 @@ public class RecorderPlugin extends CordovaPlugin {
 	 * @return an AudioRecord instance
 	 */
 	private AudioRecord setupRecorder() {
-		int sampleRate = 44100;
+
 		int channelConfig = AudioFormat.CHANNEL_IN_MONO;
 		int encoding = AudioFormat.ENCODING_PCM_16BIT;
 		int minBufferSize = AudioRecord.getMinBufferSize(sampleRate,
@@ -380,7 +410,6 @@ public class RecorderPlugin extends CordovaPlugin {
 
 				Log.i(TAG, "Buffer size: " + this.tBufferSize);
 
-				int REC_SECONDS = 30;
 				this.mRecordBuffer = new short[sampleRate * REC_SECONDS];
 
 				return record;
@@ -448,7 +477,7 @@ public class RecorderPlugin extends CordovaPlugin {
 	/**
 	 * Stop emitting white noise.
 	 * 
-	 * A call to {@link #startWhiteNoise()} is sufficient to restart the noise.
+	 * A call to {@link #startWhiteNoise} is sufficient to restart the noise.
 	 */
 	private void stopWhiteNoise(CallbackContext callbackContext) {
 		try {
@@ -462,27 +491,21 @@ public class RecorderPlugin extends CordovaPlugin {
 		callbackContext.success();
 	}
 
-	private void getInsects(CallbackContext callbackContext) {
-		try {
-			HashMap<Insect, Float> insects = mAnalyser.getInsectsEstimates();
-			JSONArray json_insects = new JSONArray();
-			for (Entry<Insect, Float> entry : insects.entrySet()) {
-				JSONObject insect = entry.getKey().toJSON();
-				insect.put("value", entry.getValue());
-				json_insects.put(insect);
-			}
-			// Log.d(TAG, ""+cicada);
-			callbackContext.success(json_insects);
-		} catch (NullPointerException ex1) {
-			// Log.d(TAG, "0");
-			ex1.printStackTrace();
-			callbackContext.success(new JSONObject()); // empty
-		} catch (Exception ex2) {
-			ex2.printStackTrace();
-			callbackContext.error("Unknown Error");
-		}
-	}
 
+	public File getWaveFile() throws IOException {
+
+		File waveDir = new File(Environment.getExternalStorageDirectory(), SUBDIR);
+		File wavFile = new File(waveDir, df.format(new Date()).concat(".wav"));
+
+		boolean success = false;
+		if (!waveDir.exists()) {
+			success = waveDir.mkdir();
+
+			if (!success)
+				throw new IOException("Could not create "+ waveDir.getName()+" directory.");
+		}
+		return wavFile;
+	}
 	/**
 	 * Write the current buffer to file.
 	 * 
@@ -494,24 +517,10 @@ public class RecorderPlugin extends CordovaPlugin {
 
 		int bitsPerSample = 16;
 
-		File waveFile = null;
-		// ByteArrayOutputStream baos;
-		RandomAccessFile ras;
 		try {
-			File waveDir = new File(Environment.getExternalStorageDirectory(),
-					"CicadaHunt");
-			// waveFile = new File(waveDir, t.format2445().concat(".wav"));
-			waveFile = new File(waveDir, df.format(new Date()).concat(".wav"));
 
-			boolean success = false;
-			if (!waveDir.exists()) {
-				success = waveDir.mkdir();
-
-				if (!success)
-					callbackContext.error(""); // empty string is agreed for
-												// error message
-			}
-			ras = new RandomAccessFile(waveFile, "rw");
+			File waveFile = getWaveFile();
+			RandomAccessFile ras = new RandomAccessFile(waveFile, "rw");
 
 			/*
 			 * Wave file format based on specification described here:
@@ -530,20 +539,20 @@ public class RecorderPlugin extends CordovaPlugin {
 			ras.writeInt(Integer.reverseBytes(16)); // Chunk size
 			ras.writeShort(Short.reverseBytes((short) 1)); // Format code (PCM)
 			ras.writeShort(Short.reverseBytes((short) mChannelCount)); // Number
-																		// of
-																		// channels
+			// of
+			// channels
 			ras.writeInt(Integer.reverseBytes(mSampleRate)); // Sampling
-																// rate
+			// rate
 			ras.writeInt(Integer.reverseBytes(mSampleRate * mChannelCount
 					* bitsPerSample / 8)); // Data
-											// rate,
-											// SampleRate*NumberOfChannels*BitsPerSample/8
+			// rate,
+			// SampleRate*NumberOfChannels*BitsPerSample/8
 			ras.writeShort(Short.reverseBytes((short) (mChannelCount
 					* bitsPerSample / 8))); // Block align,
-											// NumberOfChannels*BitsPerSample/8
+			// NumberOfChannels*BitsPerSample/8
 			ras.writeShort(Short.reverseBytes((short) bitsPerSample)); // Bits
-																		// per
-																		// sample
+			// per
+			// sample
 
 			// Data chunk
 			ras.writeBytes("data");
@@ -610,20 +619,31 @@ public class RecorderPlugin extends CordovaPlugin {
 			}
 			ras.close();
 
+			Log.i(TAG, "written to "+waveFile.getAbsolutePath());
+
+			callbackContext.success(waveFile.getAbsolutePath());
+
+		} catch (IOException e) {
+
+			Log.e(TAG, e.getMessage());
+			callbackContext.error(""); // empty path to file
+
 		} catch (Exception e) {
+
 			e.printStackTrace();
 			callbackContext.error(""); // empty path to file
+
 		}
-		callbackContext.success(waveFile.getAbsolutePath());
 	}
 
-	private void startSurvey(CallbackContext callbackContext) {
+	private boolean startSurvey() {
 
 		if (mIsSurveying) {
-			callbackContext.error("Survey already started");
+			return false;
 		} else {
 			mIsSurveying = true;
-			mAnalyser.initSonogram();
+			//mAnalyser.initSonogram(UPDATE_RATE, 30);
+			mSpectrogram = new Spectrogram(UPDATE_RATE, 30);
 
 			Log.i("TAG", "Survey started");
 			mSurveyTimer = new Timer();
@@ -631,88 +651,53 @@ public class RecorderPlugin extends CordovaPlugin {
 
 				@Override
 				public void run() {
-					// mAnalyser.updateInsectLongTimeResults();
-					mAnalyser.updateLongTermResult();
-					mAnalyser.updateSonogram();
-				}
-			}, 0, 100);
 
-			callbackContext.success();
+					try {
+						// mAnalyser.updateInsectLongTimeResults();
+						// mAnalyser.updateLongTermResult();
+						//mAnalyser.updateSonogram();
+
+						mSpectrogram.update(mAnalyser.getGoertzels());
+					} catch (NullPointerException e){
+						Log.e(TAG, "Null pointer on sonogram. This should never occur.");
+
+					}
+				}
+			}, 0, UPDATE_RATE);
+
+			return true;
 		}
 	}
 
-//	private void stopSurvey(CallbackContext callbackContext, int width,
-//			int height) {
-//
-//		Log.i("STOP", "survey stopped");
-//		mIsSurveying = false;
-//
-//		/** stop the survey thread */
-//		mSurveyTimer.cancel();
-//
-//		/** now try to get some results */
-//		try {
-//
-//			HmmResult[] results = mAnalyser.getHmmResult();
-//			JSONArray json_insects = new JSONArray();
-//
-//			int message = 0;
-//			boolean keepRecording = false;
-//			boolean foundCicada = false;
-//
-//			for (int i = 0; i < results.length; i++) {
-//				Insect insect = mAnalyser.getInsects().get(
-//						results[i].getInsectId());
-//				boolean found = results[i].isFound();
-//				JSONObject json_insect = insect.toJSON();
-//
-//				json_insect.put("value", results[i].getValue());
-//				json_insect.put("found", found);
-//
-//				if (found) {
-//					keepRecording = true;
-//					if (insect.getId() == Cicada.ID) {
-//						foundCicada = true;
-//					}
-//				}
-//				json_insects.put(json_insect);
-//			}
-//
-//			if (keepRecording)
-//				message++;
-//			if (foundCicada)
-//				message++;
-//
-//			/** now create the bitmap file */
-//			String[] sonogram_created = mAnalyser.createSonogram(width, height);
-//			String fullpath = sonogram_created[0];
-//			//String serialised_sonogram = sonogram_created[1];
-//
-//			JSONObject report = new JSONObject();
-//			report.put("insects", json_insects);
-//			report.put("keep_recording", keepRecording);
-//			report.put("message", message);
-//			report.put("sonogram", fullpath);
-//			//report.put("serialised_sonogram", serialised_sonogram);
-//
-//			callbackContext.success(report);
-//
-//		} catch (JSONException e) {
-//			e.printStackTrace();
-//			callbackContext.error("Cannot retrieve survey report.");
-//		}
-//
-//		mSurveyTimer = null;
-//
-//		/*
-//		 * try { report = new JSONObject("{\"insects\": " +
-//		 * "[ { \"insect\": 0, \"name\": \"New Forest Cicada\", \"value\": 0.8, \"found\": true } ], "
-//		 * + "\"keep_recording\": true,\"message\": 0}");
-//		 * callbackContext.success(report); } catch (JSONException e) {
-//		 * e.printStackTrace(); callbackContext.error("Badaboom!"); }
-//		 */
-//
-//	}
+	private void stopSurvey() {
+
+		if (mIsSurveying) {
+			Log.i("STOP", "survey stopped");
+			mIsSurveying = false;
+
+			/** stop the survey thread */
+			mSurveyTimer.cancel();
+
+			mSurveyTimer = null;
+
+		} else {
+
+			Log.i("STOP", "not currently surveying");
+
+		}
+
+	}
+
+	private void captureRecording(CallbackContext callbackContext) {
+		Log.i(TAG, "captureRecording called");
+		callbackContext.success(df.format(new Date())+".png");
+	}
+
+	public void setHeterodyneFrequency(CallbackContext callbackContext, int freq) {
+		this.heterodyneFrequency = freq;
+		Log.w(TAG, "Heterodyne not currently implemented.");
+		callbackContext.success();
+	}
 
 	private class LowPassFilter {
 		float xv0, xv1, yv0, yv1, gain, ratio = 0;
