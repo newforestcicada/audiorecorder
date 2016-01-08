@@ -41,7 +41,7 @@ public class RecorderPlugin extends CordovaPlugin {
 	private int bufferIndex;
 	private int maxIndex = 0;
 	private short[] mRecordBuffer;
-	private float[] mHeterodyneBuffer;
+	private double[] mHeterodyneBuffer;
 	private int hetIndex;
 
 	private int mSampleRate;
@@ -260,7 +260,7 @@ public class RecorderPlugin extends CordovaPlugin {
 							bufferIndex = (bufferIndex + 1) % mRecordBuffer.length;
 							maxIndex = Math.min(++maxIndex, mRecordBuffer.length);
 
-							mHeterodyneBuffer[hetIndex] = mHeterodyne.updateWithSample((float) sample);
+							mHeterodyneBuffer[hetIndex] = mHeterodyne.updateWithSample(sample);
 							hetIndex = (hetIndex + 1) % mHeterodyneBuffer.length;
 						}
 					}
@@ -425,7 +425,7 @@ public class RecorderPlugin extends CordovaPlugin {
 				Log.i(TAG, "Buffer size: " + this.tBufferSize);
 
 				mRecordBuffer = new short[sampleRate * REC_SECONDS];
-				mHeterodyneBuffer = new float[sampleRate * 1]; // 1 sec
+				mHeterodyneBuffer = new double[sampleRate * 1]; // 1 sec
 
 				return record;
 			}
@@ -519,9 +519,10 @@ public class RecorderPlugin extends CordovaPlugin {
 		cordova.getThreadPool().execute(new Runnable() {
 
 			public void run() {
+
 				while (mIsPlaying) {
 
-					float[] heterodyneBuffer;
+					double[] heterodyneBuffer;
 					int tempHetIndex;
 
 					synchronized (mHeterodyneBuffer) {
@@ -533,28 +534,34 @@ public class RecorderPlugin extends CordovaPlugin {
 
 
 					int idx = 0;
-					float dVal;
+					double dVal;
+					short val;
+					int ivals;
+					short[] vals = new short[heterodyneBuffer.length];
+					long[] lvals = new long[heterodyneBuffer.length];
+
 					//for (final float dVal : mHeterodyneBuffer) {
-					for (int i=tempHetIndex; i<heterodyneBuffer.length; i++) {
+					for (int i = tempHetIndex; i < heterodyneBuffer.length; i++) {
 						// scale to maximum amplitude
-						dVal = heterodyneBuffer[tempHetIndex];
-						final short val = (short) ((dVal * Short.MAX_VALUE));
+						//dVal = heterodyneBuffer[tempHetIndex];
+						val = (short) (heterodyneBuffer[i] * Short.MAX_VALUE);
 						// in 16 bit wav PCM, first byte is the low order byte
 						generatedSnd[idx++] = (byte) (val & 0x00ff);
 						generatedSnd[idx++] = (byte) ((val & 0xff00) >>> 8);
 					}
 
-					for (int i=0; i<tempHetIndex; i++) {
+					for (int i = 0; i < tempHetIndex; i++) {
+
 						// scale to maximum amplitude
-						dVal = heterodyneBuffer[tempHetIndex];
-						final short val = (short) ((dVal * Short.MAX_VALUE));
+						val = (short) (heterodyneBuffer[i] * Short.MAX_VALUE);
+
 						// in 16 bit wav PCM, first byte is the low order byte
 						generatedSnd[idx++] = (byte) (val & 0x00ff);
 						generatedSnd[idx++] = (byte) ((val & 0xff00) >>> 8);
 					}
 
-					Log.d(TAG, "playing");
 					mAudioPlayer.write(generatedSnd, 0, generatedSnd.length);
+
 
 				}
 			}

@@ -60,13 +60,16 @@
             </config-file>
             
             
-            <source-file src="src/android/Kalman.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
-            <source-file src="src/android/Baselines.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
-            <source-file src="src/android/AudioAnalyser.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
-            <source-file src="src/android/Goertzel.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
-            <source-file src="src/android/RecorderPlugin.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
-            <source-file src="src/android/Spectrogram.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
-            <source-file src="src/android/Heterodyne.java" target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/Kalman.java"          target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/Baselines.java"       target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/AudioAnalyser.java"   target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/Goertzel.java"        target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/RecorderPlugin.java"  target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/Spectrogram.java"     target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/Heterodyne.java"      target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/Filter.java"          target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/HighPassFilter.java"  target-dir="src/info/newforestcicada/audiorecorder/plugin" />
+            <source-file src="src/android/LowPassFilter.java"   target-dir="src/info/newforestcicada/audiorecorder/plugin" />
             
             <!--
             <source-file src="src/android/*.java" target-dir="src/info/newforestcicada/audiorecorder/plugin/" />
