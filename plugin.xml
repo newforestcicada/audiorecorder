@@ -10,37 +10,37 @@
         <platform name="ios">
             <config-file target="config.xml" parent="/*">
                 <feature name="AudioRecorder">
-                    <param name="ios-package" value="CDVAudioRecorder"/>
+                    <param name="ios-package" value="CordovaAudioRecorder"/>
                     <param name="onload" value="true"/>
                 </feature>
             </config-file>
-            
+
             <framework src="AudioToolbox.framework" />
             <framework src="CoreAudio.framework" />
             <header-file src="src/ios/AudioRecorder.h" />
             <header-file src="src/ios/Sonogram.h" />
             <header-file src="src/ios/DeviceType.h" />
-            <header-file src="src/ios/CDVAudioRecorder.h" />        
+            <header-file src="src/ios/CordovaAudioRecorder.h" />
             <header-file src="src/ios/GoertzelFilter.h" />
             <header-file src="src/ios/HeterodyneDetector.h" />
-            <header-file src="src/ios/HighPassFilter.h" /> 
+            <header-file src="src/ios/HighPassFilter.h" />
             <header-file src="src/ios/KalmanFilter.h" />
             <header-file src="src/ios/LowPassFilter.h" />
-            <header-file src="src/ios/RecordingBuffer.h" /> 
-            <header-file src="src/ios/Settings.h" /> 
+            <header-file src="src/ios/RecordingBuffer.h" />
+            <header-file src="src/ios/Settings.h" />
             <source-file src="src/ios/AudioRecorder.m" />
             <source-file src="src/ios/Sonogram.c" />
             <source-file src="src/ios/DeviceType.m" />
-            <source-file src="src/ios/CDVAudioRecorder.m" />       
+            <source-file src="src/ios/CordovaAudioRecorder.m" />
             <source-file src="src/ios/GoertzelFilter.c" />
             <source-file src="src/ios/HeterodyneDetector.c" />
-            <source-file src="src/ios/HighPassFilter.c" /> 
+            <source-file src="src/ios/HighPassFilter.c" />
             <source-file src="src/ios/KalmanFilter.c" />
             <source-file src="src/ios/LowPassFilter.c" />
             <source-file src="src/ios/RecordingBuffer.c" />
-            
+
         </platform>
-        
+
          <!-- android -->
         <platform name="android">
             <config-file target="res/xml/config.xml" parent="/*">
@@ -48,18 +48,18 @@
                     <param name="android-package" value="info.newforestcicada.audiorecorder.plugin.RecorderPlugin" />
                 </feature>
             </config-file>
-            
+
             <config-file target="AndroidManifest.xml" parent="/*">
                 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
                 <uses-permission android:name="android.permission.RECORD_AUDIO" />
             </config-file>
-            
+
             <config-file target="res/values/strings.xml" parent="/*">
                 <string name="MEANS">distribution_means</string>
                 <string name="VARS">distribution_variances</string>
             </config-file>
-            
-            
+
+
             <source-file src="src/android/Kalman.java"          target-dir="src/info/newforestcicada/audiorecorder/plugin" />
             <source-file src="src/android/Baselines.java"       target-dir="src/info/newforestcicada/audiorecorder/plugin" />
             <source-file src="src/android/AudioAnalyser.java"   target-dir="src/info/newforestcicada/audiorecorder/plugin" />
@@ -70,10 +70,6 @@
             <source-file src="src/android/Filter.java"          target-dir="src/info/newforestcicada/audiorecorder/plugin" />
             <source-file src="src/android/HighPassFilter.java"  target-dir="src/info/newforestcicada/audiorecorder/plugin" />
             <source-file src="src/android/LowPassFilter.java"   target-dir="src/info/newforestcicada/audiorecorder/plugin" />
-            
-            <!--
-            <source-file src="src/android/*.java" target-dir="src/info/newforestcicada/audiorecorder/plugin/" />
-            <source-file src="src/android/insects/*.java" target-dir="src/info/newforestcicada/audiorecorder/plugin/insects/" />
-            -->
+
         </platform>
     </plugin>
