@@ -22,15 +22,16 @@ void RecordingBuffer_update(SInt16 sample, RecordingBuffer *recordingBuffer) {
     if (recordingBuffer->index == RECORDING_BUFFER_LENGTH ) {
 
         recordingBuffer->index = 0;
+        recordingBuffer->wrapped = true;
 
     }
 
 }
 
 void RecordingBuffer_clearBuffer(RecordingBuffer *recordingBuffer) {
-    
-    memset(recordingBuffer->mainBuffer, 0, sizeof(recordingBuffer->mainBuffer));
-    
+
+    memset(recordingBuffer, 0, sizeof(&recordingBuffer));
+
 }
 
 void RecordingBuffer_copyBuffer(RecordingBuffer *recordingBuffer) {
@@ -43,13 +44,21 @@ void RecordingBuffer_copyBuffer(RecordingBuffer *recordingBuffer) {
 
     }
 
-    int firstSectionLength = copyIndex;
+    if (recordingBuffer->wrapped) {
 
-    int secondSectionLength = RECORDING_BUFFER_LENGTH - firstSectionLength;
+        int firstSectionLength = copyIndex;
 
-    memcpy(recordingBuffer->copyBuffer, &recordingBuffer->mainBuffer[firstSectionLength], secondSectionLength * sizeof(SInt16));
+        int secondSectionLength = RECORDING_BUFFER_LENGTH - firstSectionLength;
 
-    memcpy(&recordingBuffer->copyBuffer[secondSectionLength], recordingBuffer->mainBuffer, firstSectionLength * sizeof(SInt16));
+        memcpy(recordingBuffer->copyBuffer, &recordingBuffer->mainBuffer[firstSectionLength], secondSectionLength * sizeof(SInt16));
+
+        memcpy(&recordingBuffer->copyBuffer[secondSectionLength], recordingBuffer->mainBuffer, firstSectionLength * sizeof(SInt16));
+
+    } else {
+
+        memcpy(recordingBuffer->copyBuffer, recordingBuffer->mainBuffer, RECORDING_BUFFER_LENGTH * sizeof(SInt16));
+
+    }
 
 }
 

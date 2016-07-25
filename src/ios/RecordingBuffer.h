@@ -14,6 +14,7 @@
 
 typedef struct {
     int index;
+    bool wrapped;
     SInt16 mainBuffer[RECORDING_BUFFER_LENGTH];
     SInt16 copyBuffer[RECORDING_BUFFER_LENGTH];
 } RecordingBuffer;
@@ -29,4 +30,3 @@ void RecordingBuffer_clearBuffer(RecordingBuffer *recordingBuffer);
 bool RecordingBuffer_getSample(SInt16 *sample, RecordingBuffer *recordingBuffer, int index, int duration);
 
 OSStatus RecordingBuffer_writeRecording(AudioFileID *audioFile, RecordingBuffer *recordingBuffer, int duration);
-

@@ -16,6 +16,7 @@
 typedef struct {
     int index;
     int count;
+    bool wrapped;
     int frequencyStep;
     int startFrequency;
     int numberOfFilters;
@@ -37,6 +38,3 @@ float Sonogram_getCurrentValue(Sonogram *sonogram, int filter);
 float Sonogram_getValue(Sonogram *sonogram, int i, int j, int width, int height, int duration);
 
 void Sonogram_colour(float value,  float min, float max, UInt8 *red, UInt8 *green, UInt8 *blue);
-
-
-
