@@ -43,7 +43,7 @@
 
     [self.commandDelegate runInBackground:^{
 
-        NSLog(@"Detector initialised.");
+        NSLog(@"[CordovaAudioRecorder] Detector initialised.");
 
         /* Initialise the audio recorder */
 
@@ -83,7 +83,7 @@
 
             } else {
 
-                NSLog(@"Detector started.");
+                NSLog(@"[CordovaAudioRecorder] Detector started.");
 
                 success = [_audioRecorder startAudioRecorder];
 
@@ -121,7 +121,7 @@
 
             if (_audioRecorder) {
 
-                NSLog(@"Detector stopped.");
+                NSLog(@"[CordovaAudioRecorder] Detector stopped.");
 
                 success = [_audioRecorder stopAudioRecorder];
 
@@ -161,7 +161,7 @@
 
         if (_audioRecorder) {
 
-            NSLog(@"White noise started");
+            NSLog(@"[CordovaAudioRecorder] White noise started");
 
             [_audioRecorder startWhiteNose];
 
@@ -187,7 +187,7 @@
 
         if (_audioRecorder) {
 
-            NSLog(@"White noise stopped");
+            NSLog(@"[CordovaAudioRecorder] White noise stopped");
 
             [_audioRecorder stopWhiteNoise];
 
@@ -213,7 +213,7 @@
 
         if (_audioRecorder) {
 
-            NSLog(@"Heterodyne started");
+            NSLog(@"[CordovaAudioRecorder] Heterodyne started");
 
             [_audioRecorder startHeterodyne];
 
@@ -239,7 +239,7 @@
 
         if (_audioRecorder) {
 
-            NSLog(@"Heterodyne stopped");
+            NSLog(@"[CordovaAudioRecorder] Heterodyne stopped");
 
             [_audioRecorder stopHeterodyne];
 
@@ -271,13 +271,13 @@
 
         } @catch (NSException *e) {
 
-            NSLog(@"Couldn't get frequency. Using default value of %d.", frequency);
+            NSLog(@"[CordovaAudioRecorder] Couldn't get frequency. Using default value of %d.", frequency);
 
         }
 
         if (_audioRecorder) {
 
-            NSLog(@"Set heterodyne frequency to %d.", frequency);
+            NSLog(@"[CordovaAudioRecorder] Set heterodyne frequency to %d.", frequency);
 
             [_audioRecorder setHeterodyneFrequency:frequency];
 
@@ -423,7 +423,7 @@
 
         if (_audioRecorder) {
 
-            NSLog(@"Clear buffers.");
+            NSLog(@"[CordovaAudioRecorder] Clear buffers.");
 
             [_audioRecorder clearBuffers];
 
@@ -479,7 +479,7 @@
 
         } @catch (NSException *e) {
 
-            NSLog(@"Couldn't get sonogram x dimensions. Using default value of %d.", x);
+            NSLog(@"[CordovaAudioRecorder] Couldn't get sonogram x dimensions. Using default value of %d.", x);
 
         }
 
@@ -491,7 +491,7 @@
 
         } @catch (NSException *e) {
 
-            NSLog(@"Couldn't get sonogram y dimensions. Using default value of %d.", y);
+            NSLog(@"[CordovaAudioRecorder] Couldn't get sonogram y dimensions. Using default value of %d.", y);
 
         }
 
@@ -503,13 +503,13 @@
 
         } @catch (NSException *e) {
 
-            NSLog(@"Couldn't get sonogram duration. Using default value of %d.", duration);
+            NSLog(@"[CordovaAudioRecorder] Couldn't get sonogram duration. Using default value of %d.", duration);
 
         }
 
         NSString *fileName = [_fileName stringByAppendingString:@".png"];
 
-        NSLog(@"File : %@, Duration : %d", fileName, duration);
+        NSLog(@"[CordovaAudioRecorder] File : %@, Duration : %d", fileName, duration);
 
         NSString *filePath = [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:fileName];
 
@@ -553,13 +553,13 @@
 
         } @catch (NSException *e) {
 
-            NSLog(@"Couldn't get recording duration. Using default value of %d.", duration);
+            NSLog(@"[CordovaAudioRecorder] Couldn't get recording duration. Using default value of %d.", duration);
 
         }
 
         NSString *fileName = [_fileName stringByAppendingString:@".wav"];
 
-        NSLog(@"File : %@, Duration : %d", fileName, duration);
+        NSLog(@"[CordovaAudioRecorder] File : %@, Duration : %d", fileName, duration);
 
         NSString *filePath = [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:fileName];
 
