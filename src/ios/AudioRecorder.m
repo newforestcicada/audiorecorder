@@ -35,14 +35,14 @@ typedef struct {
 @interface AudioRecorder () {
 
     AudioRecorderState _audioRecorderState;
-    
+
     int _numberOfGoetzelFilters;
     int _goertzelStartFrequency;
     int _goertzelStepFrequency;
-    
+
     float _amplitudeSigmoidFactor;
     float _frequenciesSigmoidFactor;
-    
+
     float _sonogramMinValue;
     float _sonogramMaxValue;
 
@@ -69,7 +69,7 @@ static AudioRecorder *_audioRecorder;
 }
 
 - (NSString*)frequencyColorWithRed:(UInt8)red green:(UInt8)green blue:(UInt8)blue {
-    
+
     return [NSString stringWithFormat:@"#%02x%02x%02x", red, green, blue];
 
 }
@@ -97,31 +97,31 @@ static BOOL CheckError(OSStatus error, const char *operation) {
 }
 
 - (id)init {
-    
+
     self = [super init];
-    
+
     if (self) {
-        
+
         _numberOfGoetzelFilters = 43;
         _goertzelStepFrequency = 500;
         _goertzelStartFrequency = 500;
-        
+
         _amplitudeSigmoidFactor = 100.0f;
         _frequenciesSigmoidFactor = 0.002f;
-        
+
         _sonogramMinValue = 80.0f;
         _sonogramMaxValue = 5000.0f;
-    
+
         int deviceType = [DeviceType getDeviceType];
-        
+
         if (deviceType == DEVICE_TYPE_IPHONE || deviceType == DEVICE_TYPE_IPHONE_3G || deviceType == DEVICE_TYPE_IPHONE_3GS) {
- 
+
             _amplitudeSigmoidFactor = 40.0f;
             _frequenciesSigmoidFactor = 0.01f;
-            
+
             _sonogramMinValue = 40.0f;
             _sonogramMaxValue = 1000.0f;
-            
+
         }
 
         if (deviceType == DEVICE_TYPE_IPHONE || deviceType == DEVICE_TYPE_IPHONE_3G || deviceType == DEVICE_TYPE_IPHONE_3GS || deviceType == DEVICE_TYPE_IPHONE_4 ) {
@@ -129,13 +129,13 @@ static BOOL CheckError(OSStatus error, const char *operation) {
             _numberOfGoetzelFilters = 21;
             _goertzelStepFrequency = 1000;
             _goertzelStartFrequency = 1000;
-            
+
         }
-        
+
     }
-    
+
     return self;
-    
+
 }
 
 - (BOOL)initialiseAudioRecorder {
@@ -234,15 +234,15 @@ static BOOL CheckError(OSStatus error, const char *operation) {
 
     _audioRecorderState.asbd = myASBD;
     _audioRecorderState.output = SILENT;
-    
+
     Sonogram_initialise(&_audioRecorderState.songram, _numberOfGoetzelFilters, _goertzelStartFrequency, _goertzelStepFrequency);
 
     RecordingBuffer_initialise(&_audioRecorderState.recordingBuffer);
-    
+
     _audioRecorderState.heterodyneDetector = HeterodyneDetector_initialise(14000.0f, SAMPLES_PER_SECOND);
 
     _audioRecorderState.lowPassFilter = LowPassFilter_initialise(1.404746361e+03, 0.9985762554);
-    
+
     AURenderCallbackStruct callbackStruct;
     callbackStruct.inputProc = InputModulatingRenderCallback;
     callbackStruct.inputProcRefCon = &_audioRecorderState;
@@ -318,55 +318,55 @@ static BOOL CheckError(OSStatus error, const char *operation) {
 }
 
 - (NSNumber*)getAmplitude:(outputScaling_t)outputScaling {
-    
+
     float value = LowPassFilter_output(&_audioRecorderState.lowPassFilter);
-    
+
     if (outputScaling == AUDIORECORDER_RAW) {
-        
+
         return [NSNumber numberWithFloat:value];
-    
+
     } else {
-        
+
         float scaledValue = 2.0f / (1.0f + (float)exp(-_amplitudeSigmoidFactor * value)) - 1.0f;
-        
+
         return [NSNumber numberWithFloat:scaledValue];
-        
+
     }
-    
+
 }
 
 - (NSArray *)getFrequencies:(outputScaling_t)outputScaling {
-    
+
     NSMutableArray *array = [[NSMutableArray alloc] initWithCapacity:_numberOfGoetzelFilters];
 
     for (int i = 0; i < _numberOfGoetzelFilters; i += 1) {
 
         float value = Sonogram_getCurrentValue(&_audioRecorderState.songram, i);
-        
+
         if (outputScaling == AUDIORECORDER_RAW) {
-            
+
             [array addObject:[NSNumber numberWithFloat:value]];
-            
+
         } else {
-            
+
             if (outputScaling == AUDIORECORDER_SCALED) {
-               
+
                 float scaledValue = 2.0f / (1.0f + (float)exp(-_frequenciesSigmoidFactor * value)) - 1.0f;
-                
+
                 [array addObject:[NSNumber numberWithFloat:scaledValue]];
-                
+
             } else {
-                
+
                 UInt8 red;
                 UInt8 green;
                 UInt8 blue;
-                
+
                 Sonogram_colour(value, _sonogramMinValue, _sonogramMaxValue, &red, &green, &blue);
-                
+
                 [array addObject:[self frequencyColorWithRed:red green:green blue:blue]];
-                
+
             }
-            
+
         }
 
     }
@@ -376,27 +376,27 @@ static BOOL CheckError(OSStatus error, const char *operation) {
 }
 
 - (void)clearBuffers {
-    
+
     Sonogram_clearSonogram(&_audioRecorderState.songram);
     RecordingBuffer_clearBuffer(&_audioRecorderState.recordingBuffer);
-    
+
 }
 
 - (void)captureRecording {
 
-    RecordingBuffer_copyBuffer(&_audioRecorderState.recordingBuffer);
     Sonogram_copySonogram(&_audioRecorderState.songram);
-
+    RecordingBuffer_copyBuffer(&_audioRecorderState.recordingBuffer);
+    
 }
 
 - (NSString *)writeSonogramWithURL:(NSURL *)url withX:(int)x andY:(int)y forDuration:(int)duration {
 
     char *rgba = malloc(4 * x * y);
-    
+
     UInt8 red;
     UInt8 green;
     UInt8 blue;
-    
+
     int index = 0;
 
     for (int j = 0; j < y; j += 1) {
@@ -404,9 +404,9 @@ static BOOL CheckError(OSStatus error, const char *operation) {
         for (int i = 0; i < x; i += 1) {
 
             float value = Sonogram_getValue(&_audioRecorderState.songram, i, j, x, y, duration);
- 
+
             Sonogram_colour(value, _sonogramMinValue, _sonogramMaxValue, &red, &green, &blue);
-            
+
             rgba[index++] = red;
             rgba[index++] = green;
             rgba[index++] = blue;

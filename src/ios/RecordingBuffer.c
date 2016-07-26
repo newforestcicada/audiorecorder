@@ -11,7 +11,7 @@
 
 void RecordingBuffer_initialise(RecordingBuffer *recordingBuffer) {
 
-    memset(recordingBuffer, 0, sizeof(&recordingBuffer));
+    memset(recordingBuffer, 0, sizeof(RecordingBuffer));
 
 }
 
@@ -30,7 +30,7 @@ void RecordingBuffer_update(SInt16 sample, RecordingBuffer *recordingBuffer) {
 
 void RecordingBuffer_clearBuffer(RecordingBuffer *recordingBuffer) {
 
-    memset(recordingBuffer, 0, sizeof(&recordingBuffer));
+    memset(recordingBuffer, 0, sizeof(RecordingBuffer));
 
 }
 
