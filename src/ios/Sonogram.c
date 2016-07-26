@@ -14,7 +14,7 @@
 
 void Sonogram_initialise(Sonogram *sonogram, int numberOfFilters, int startFrequency, int frequencyStep) {
 
-    memset(sonogram, 0, sizeof(&sonogram));
+    memset(sonogram, 0, sizeof(Sonogram));
 
     sonogram->numberOfFilters = numberOfFilters;
     sonogram->startFrequency = startFrequency;
