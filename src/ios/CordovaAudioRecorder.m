@@ -9,6 +9,9 @@
 #import "AudioRecorder.h"
 #import "CordovaAudioRecorder.h"
 
+#import <AVFoundation/AVFoundation.h>
+#import <AVFoundation/AVAudioSession.h>
+
 @interface CordovaAudioRecorder () {
 
     AudioRecorder *_audioRecorder;
@@ -39,13 +42,87 @@
 
 }
 
+/*
+- (id)init {
+    
+    self = [super init];
+    
+    if (self) {
+    
+        NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+    
+        [nc addObserver:self selector:@selector(audioSessionInterrupt:) name:AVAudioSessionInterruptionNotification object:nil];
+
+        [nc addObserver:self selector:@selector(didEnterBackground:) name:UIApplicationDidEnterBackgroundNotification object:nil];
+        
+    }
+
+    return self;
+    
+}
+*/
+
+- (void)audioSessionInterrupt:(NSNotification *)notification {
+    
+    NSInteger reason = [notification.userInfo[AVAudioSessionInterruptionTypeKey] integerValue];
+    
+    if (reason == AVAudioSessionInterruptionTypeBegan && _started) {
+
+        NSLog(@"[CordovaAudioRecorder] Audio interuption began. Stopping recorder.");
+        
+        [_audioRecorder stopAudioRecorder];
+    
+    }
+    
+    if (reason == AVAudioSessionInterruptionTypeEnded && _started) {
+    
+        NSLog(@"[CordovaAudioRecorder] Audio interuption ended. Starting recorder.");
+        
+        [_audioRecorder startAudioRecorder];
+    
+    }
+    
+}
+
+- (void)didEnterBackground:(NSNotification *)notification {
+    
+    if (_started) {
+        
+        NSLog(@"[CordovaAudioRecorder] Entered background. Stopping recorder.");
+        
+        [_audioRecorder stopAudioRecorder];
+    
+    }
+
+}
+
+- (void)didBecomeActive:(NSNotification *)notification {
+    
+    if (_started) {
+        
+        NSLog(@"[CordovaAudioRecorder] Returned from background. Starting recorder.");
+        
+        [_audioRecorder startAudioRecorder];
+        
+    }
+    
+}
+
 - (void)initialiseAudioRecorder:(CDVInvokedUrlCommand *)command {
 
     [self.commandDelegate runInBackground:^{
 
-        NSLog(@"[CordovaAudioRecorder] Detector initialised.");
+        NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+        
+        [nc addObserver:self selector:@selector(audioSessionInterrupt:) name:AVAudioSessionInterruptionNotification object:nil];
+        
+        [nc addObserver:self selector:@selector(didEnterBackground:) name:UIApplicationDidEnterBackgroundNotification object:nil];
+
+        [nc addObserver:self selector:@selector(didBecomeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
 
         /* Initialise the audio recorder */
+
+        NSLog(@"[CordovaAudioRecorder] Detector initialised.");
 
         _audioRecorder = [AudioRecorder getInstance];
 
@@ -161,7 +238,7 @@
 
         if (_audioRecorder) {
 
-            NSLog(@"[CordovaAudioRecorder] White noise started");
+            NSLog(@"[CordovaAudioRecorder] White noise started.");
 
             [_audioRecorder startWhiteNose];
 
@@ -187,7 +264,7 @@
 
         if (_audioRecorder) {
 
-            NSLog(@"[CordovaAudioRecorder] White noise stopped");
+            NSLog(@"[CordovaAudioRecorder] White noise stopped.");
 
             [_audioRecorder stopWhiteNoise];
 
@@ -213,7 +290,7 @@
 
         if (_audioRecorder) {
 
-            NSLog(@"[CordovaAudioRecorder] Heterodyne started");
+            NSLog(@"[CordovaAudioRecorder] Heterodyne started.");
 
             [_audioRecorder startHeterodyne];
 
@@ -239,7 +316,7 @@
 
         if (_audioRecorder) {
 
-            NSLog(@"[CordovaAudioRecorder] Heterodyne stopped");
+            NSLog(@"[CordovaAudioRecorder] Heterodyne stopped.");
 
             [_audioRecorder stopHeterodyne];
 
@@ -448,6 +525,8 @@
         CDVPluginResult *pluginResult = nil;
 
         if (_audioRecorder) {
+            
+            NSLog(@"[CordovaAudioRecorder] Capture recording.");
 
             [_audioRecorder captureRecording];
 

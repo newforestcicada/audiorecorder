@@ -7,11 +7,8 @@
 //
 
 #import <Cordova/CDV.h>
-#import <CoreLocation/CoreLocation.h>
 
-#import "AudioRecorder.h"
-
-@interface CordovaAudioRecorder : CDVPlugin <CLLocationManagerDelegate>
+@interface CordovaAudioRecorder : CDVPlugin
 
 /* Initialise audioRecorder. Must be called once at the start of the application to set up interupts for the low level sound access. */
 

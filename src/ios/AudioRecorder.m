@@ -6,9 +6,10 @@
 //  Copyright (c) 2014 University of Southampton. All rights reserved.
 //
 
-#import <AudioToolbox/AudioToolbox.h>
-
 #import "AudioRecorder.h"
+
+#import <AVFoundation/AVFoundation.h>
+#import <AVFoundation/AVAudioSession.h>
 
 #import "Settings.h"
 #import "Sonogram.h"
@@ -74,28 +75,6 @@ static AudioRecorder *_audioRecorder;
 
 }
 
-static BOOL CheckError(OSStatus error, const char *operation) {
-
-    if (error == noErr) {
-        return NO;
-    }
-
-    char errorString[20];
-    *(UInt32 *) (errorString + 1) = CFSwapInt32HostToBig(error);
-
-    if (isprint(errorString[1]) && isprint(errorString[2]) && isprint(errorString[3]) && isprint(errorString[4])) {
-        errorString[0] = errorString[5] = '\'';
-        errorString[6] = '\0';
-    } else {
-        sprintf(errorString, "%d", (int) error);
-    }
-
-    NSLog(@"Error: %s (%s)", operation, errorString);
-
-    return YES;
-
-}
-
 - (id)init {
 
     self = [super init];
@@ -139,42 +118,48 @@ static BOOL CheckError(OSStatus error, const char *operation) {
 }
 
 - (BOOL)initialiseAudioRecorder {
-
-    BOOL error;
-
-    error = CheckError(AudioSessionInitialize(NULL, kCFRunLoopDefaultMode, MyInterruptionListener, &_audioRecorderState.rioUnit), "Couldn't initialise the audio session");
-
-    if (error) {
-        return NO;
-    }
-
+    
     return YES;
 
 }
 
 - (BOOL)startAudioRecorder {
 
-    BOOL error;
+    BOOL success = NO;
+    NSError *error = nil;
 
-    UInt32 category = kAudioSessionCategory_PlayAndRecord;
-
-    error = CheckError(AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(category), &category),
-            "Couldn't set the category on the audio session");
-
-    if (error) {
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    
+    // Initialise session and set rate and category
+    
+    success = [session setPreferredSampleRate: 44100 error: &error];
+    
+    success |= [session setCategory: AVAudioSessionCategoryPlayAndRecord error: &error];
+    
+    if (!success) {
+        
+        NSLog(@"[CordovaAudioRecorder] Error: %@", [error localizedDescription]);
+        
         return NO;
+        
     }
 
-    UInt32 inputAvailable;
-    UInt32 ui32PropertySize = sizeof(inputAvailable);
-
-    error = CheckError(AudioSessionGetProperty(kAudioSessionProperty_AudioInputAvailable, &ui32PropertySize, &inputAvailable), "Couldn't get current audio input available property");
-
-    if (error || !inputAvailable) {
+    // Check if input is available
+    
+    success = [session isInputAvailable];
+    
+    if (!success) {
+        
+        NSLog(@"[CordovaAudioRecorder] No input available.");
+        
         return NO;
+        
     }
 
+    // Set up audio component
+    
     AudioComponentDescription audioCompDesc;
+    
     audioCompDesc.componentType = kAudioUnitType_Output;
     audioCompDesc.componentSubType = kAudioUnitSubType_RemoteIO;
     audioCompDesc.componentManufacturer = kAudioUnitManufacturer_Apple;
@@ -183,29 +168,47 @@ static BOOL CheckError(OSStatus error, const char *operation) {
 
     AudioComponent rioComponent = AudioComponentFindNext(NULL, &audioCompDesc);
 
-    error = CheckError(AudioComponentInstanceNew(rioComponent, &_audioRecorderState.rioUnit), "Couldn't get RIO unit instance");
+    OSStatus status = AudioComponentInstanceNew(rioComponent, &_audioRecorderState.rioUnit);
+    
+    if (status != noErr) {
+        
+        NSLog(@"[CordovaAudioRecorder] Could not get audio IO unit.");
 
-    if (error) {
         return NO;
+    
     }
+    
+    // Enable RIO output
 
     UInt32 oneFlag = 1;
 
     AudioUnitElement bus0 = 0;
 
-    error = CheckError(AudioUnitSetProperty(_audioRecorderState.rioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, bus0, &oneFlag, sizeof(oneFlag)), "Couldn't enable RIO output");
+    status = AudioUnitSetProperty(_audioRecorderState.rioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, bus0, &oneFlag, sizeof(oneFlag));
 
-    if (error) {
+    if (status != noErr) {
+    
+        NSLog(@"[CordovaAudioRecorder] Could not enable RIO output.");
+        
         return NO;
+    
     }
+    
+    // Enable RIO input
 
     AudioUnitElement bus1 = 1;
 
-    error = CheckError(AudioUnitSetProperty(_audioRecorderState.rioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, bus1, &oneFlag, sizeof(oneFlag)), "Couldn't enable RIO input");
+    status = AudioUnitSetProperty(_audioRecorderState.rioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, bus1, &oneFlag, sizeof(oneFlag));
 
-    if (error) {
+    if (status != noErr) {
+        
+        NSLog(@"[CordovaAudioRecorder] Could not enable RIO input.");
+        
         return NO;
+        
     }
+    
+    // Create format
 
     AudioStreamBasicDescription myASBD;
 
@@ -220,18 +223,28 @@ static BOOL CheckError(OSStatus error, const char *operation) {
     myASBD.mChannelsPerFrame = 1;
     myASBD.mBitsPerChannel = 16;
 
-    error = CheckError(AudioUnitSetProperty(_audioRecorderState.rioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, bus0, &myASBD, sizeof(myASBD)), "Couldn't set the ABSD for RIO on input scope/bus 0");
+    status = AudioUnitSetProperty(_audioRecorderState.rioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, bus0, &myASBD, sizeof(myASBD));
+    
+    if (status != noErr) {
+        
+        NSLog(@"[CordovaAudioRecorder] Could not set the ABSD for RIO on input scope.");
 
-    if (error) {
         return NO;
+        
     }
 
-    error = CheckError(AudioUnitSetProperty(_audioRecorderState.rioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, bus1, &myASBD, sizeof(myASBD)), "Couldn't set the ABSD for RIO on output scope/bus 1");
+    status = AudioUnitSetProperty(_audioRecorderState.rioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, bus1, &myASBD, sizeof(myASBD));
+    
+    if (status != noErr) {
+        
+        NSLog(@"[CordovaAudioRecorder] Could not set the ABSD for RIO on output scope.");
 
-    if (error) {
         return NO;
+        
     }
 
+    // Set up the sonogoram and heterodyne settings
+    
     _audioRecorderState.asbd = myASBD;
     _audioRecorderState.output = SILENT;
 
@@ -243,33 +256,57 @@ static BOOL CheckError(OSStatus error, const char *operation) {
 
     _audioRecorderState.lowPassFilter = LowPassFilter_initialise(1.404746361e+03, 0.9985762554);
 
+    // Set up the render callback
+    
     AURenderCallbackStruct callbackStruct;
     callbackStruct.inputProc = InputModulatingRenderCallback;
     callbackStruct.inputProcRefCon = &_audioRecorderState;
 
-    error = CheckError(AudioUnitSetProperty(_audioRecorderState.rioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Global, bus0, &callbackStruct, sizeof(callbackStruct)), "Couldn't set RIO's render callback on bus 0");
+    status = AudioUnitSetProperty(_audioRecorderState.rioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Global, bus0, &callbackStruct, sizeof(callbackStruct));
+    
+    if (status != noErr) {
+        
+        NSLog(@"[CordovaAudioRecorder] Could not set RIO render callback.");
 
-    if (error) {
         return NO;
+        
+    }
+    
+    // Initialise and start RIO
+    
+    status = AudioUnitInitialize(_audioRecorderState.rioUnit);
+    
+    if (status != noErr) {
+        
+        NSLog(@"[CordovaAudioRecorder] Could not initialise the RIO unit.");
+
+        return NO;
+
     }
 
-    error = CheckError(AudioSessionSetActive(true), "Couldn't set audio session active");
+    status = AudioOutputUnitStart(_audioRecorderState.rioUnit);
+    
+    if (status != noErr) {
+        
+        NSLog(@"[CordovaAudioRecorder] Could not start the RIO unit.");
 
-    if (error) {
         return NO;
+
     }
-
-    error = CheckError(AudioUnitInitialize(_audioRecorderState.rioUnit), "Couldn't initialise the RIO unit");
-
-    if (error) {
+    
+    // Activate session
+    
+    success = [session setActive: YES error: &error];
+    
+    if (!success) {
+        
+        NSLog(@"[CordovaAudioRecorder] Error: %@", [error localizedDescription]);
+        
         return NO;
+        
     }
-
-    error = CheckError(AudioOutputUnitStart(_audioRecorderState.rioUnit), "Couldn't start the RIO unit");
-
-    if (error) {
-        return NO;
-    }
+    
+    // All done
 
     return YES;
 
@@ -277,12 +314,35 @@ static BOOL CheckError(OSStatus error, const char *operation) {
 
 - (BOOL)stopAudioRecorder {
 
-    BOOL error = CheckError(AudioOutputUnitStop(_audioRecorderState.rioUnit), "Couldn't stop the RIO unit");
-
-    if (error) {
-        return NO;
+    // Stop the IO unit
+    
+    OSStatus status = AudioOutputUnitStop(_audioRecorderState.rioUnit);
+    
+    if (noErr != status) {
+        
+        NSLog(@"[CordovaAudioRecorder] Could not start the RIO unit.");
+        
     }
+    
+    // Stop the session
 
+    BOOL success;
+    NSError *error;
+
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+
+    success = [session setActive: NO error: &error];
+    
+    if (!success) {
+        
+        NSLog(@"[CordovaAudioRecorder] Error: %@", [error localizedDescription]);
+        
+        return NO;
+        
+    }
+    
+    // All done
+    
     return YES;
 
 }
@@ -427,7 +487,7 @@ static BOOL CheckError(OSStatus error, const char *operation) {
 
     if (cgImage == NULL ) {
 
-        NSLog(@"Couldn't create the sonogram bitmap object.");
+        NSLog(@"Could not create the sonogram bitmap object.");
 
     } else {
 
@@ -441,11 +501,11 @@ static BOOL CheckError(OSStatus error, const char *operation) {
             CFRelease(cgImage);
             CFRelease(bitmapContext);
 
-            serialisedSonogram = [pngData base64Encoding];
+            serialisedSonogram = [pngData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];
 
         } @catch (NSException *e) {
 
-            NSLog(@"Couldn't write the sonogram to a file.");
+            NSLog(@"Could not write the sonogram to a file.");
 
         }
 
@@ -461,44 +521,37 @@ static BOOL CheckError(OSStatus error, const char *operation) {
 
     AudioFileID audioFile;
 
-    BOOL error;
-
-    error = CheckError(AudioFileCreateWithURL((__bridge CFURLRef) url, kAudioFileWAVEType, &_audioRecorderState.asbd, kAudioFileFlags_EraseFile, &audioFile), "Couldn't open audio file");
-
-    if (error) {
+    OSStatus status = AudioFileCreateWithURL((__bridge CFURLRef) url, kAudioFileWAVEType, &_audioRecorderState.asbd, kAudioFileFlags_EraseFile, &audioFile);
+    
+    if (status != noErr) {
+        
+        NSLog(@"[CordovaAudioRecorder] Could not open audio file.");
+        
         return NO;
+
     }
 
-    error = CheckError(RecordingBuffer_writeRecording(&audioFile, &_audioRecorderState.recordingBuffer, duration), "Couldn't write data to audio file");
+    status = RecordingBuffer_writeRecording(&audioFile, &_audioRecorderState.recordingBuffer, duration);
+    
+    if (status != noErr) {
+        
+        NSLog(@"[CordovaAudioRecorder] Could not write data to audio file.");
 
-    if (error) {
         return NO;
+
     }
 
-    error = CheckError(AudioFileClose(audioFile), "Couldn't close audio file");
+    status = AudioFileClose(audioFile);
+    
+    if (status != noErr) {
+        
+        NSLog(@"[CordovaAudioRecorder] Could not close audio file.");
 
-    if (error) {
         return NO;
+
     }
 
     return YES;
-
-}
-
-static void MyInterruptionListener(void *inUserData, UInt32 inInterruptionState) {
-
-    switch (inInterruptionState) {
-        case kAudioSessionBeginInterruption:
-            NSLog(@"Audio interupted. Stopping recorder.");
-            [[AudioRecorder getInstance] stopAudioRecorder];
-            break;
-        case kAudioSessionEndInterruption:
-            NSLog(@"Audio interuption ended. Starting recorder.");
-            [[AudioRecorder getInstance] startAudioRecorder];
-            break;
-        default:
-            break;
-    }
 
 }
 
@@ -508,7 +561,15 @@ static OSStatus InputModulatingRenderCallback(void *inRefCon, AudioUnitRenderAct
 
     UInt32 bus1 = 1;
 
-    CheckError(AudioUnitRender(audioRecorderState->rioUnit, ioActionFlags, inTimeStamp, bus1, inNumberFrames, ioData), "Couldn't render from RemoteIO unit");
+    OSStatus status = AudioUnitRender(audioRecorderState->rioUnit, ioActionFlags, inTimeStamp, bus1, inNumberFrames, ioData);
+    
+    if (status != noErr) {
+        
+        NSLog(@"[CordovaAudioRecorder] Could not render from RemoteIO unit.");
+        
+        return status;
+        
+    }
 
     SInt16 sample = 0;
     SInt16 silent = 0;
