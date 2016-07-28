@@ -85,21 +85,21 @@ static AudioRecorder *_audioRecorder;
         _goertzelStepFrequency = 500;
         _goertzelStartFrequency = 500;
 
-        _amplitudeSigmoidFactor = 100.0f;
-        _frequenciesSigmoidFactor = 0.002f;
+        _amplitudeSigmoidFactor = 100.0;
+        _frequenciesSigmoidFactor = 0.002;
 
-        _sonogramMinValue = 80.0f;
-        _sonogramMaxValue = 5000.0f;
+        _sonogramMinValue = 80.0;
+        _sonogramMaxValue = 5000.0;
 
         int deviceType = [DeviceType getDeviceType];
 
         if (deviceType == DEVICE_TYPE_IPHONE || deviceType == DEVICE_TYPE_IPHONE_3G || deviceType == DEVICE_TYPE_IPHONE_3GS) {
 
-            _amplitudeSigmoidFactor = 40.0f;
-            _frequenciesSigmoidFactor = 0.01f;
+            _amplitudeSigmoidFactor = 40.0;
+            _frequenciesSigmoidFactor = 0.01;
 
-            _sonogramMinValue = 40.0f;
-            _sonogramMaxValue = 1000.0f;
+            _sonogramMinValue = 40.0;
+            _sonogramMaxValue = 1000.0;
 
         }
 

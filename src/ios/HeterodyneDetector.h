@@ -13,18 +13,18 @@
 
 typedef struct {
     int frequency;
-    float cosTheta;
-    float sinTheta;
-    float realPart;
-    float imaginaryPart;
-    float samplingRate;
+    double cosTheta;
+    double sinTheta;
+    double realPart;
+    double imaginaryPart;
+    double samplingRate;
     HighPassFilter preMixingHighPassFilter;
     LowPassFilter postMixingLowPassFilter;
     HighPassFilter dcRemovingHighPassFilter;
 } HeterodyneDetector;
 
-HeterodyneDetector HeterodyneDetector_initialise(float frequency, float samplingRate);
+HeterodyneDetector HeterodyneDetector_initialise(double frequency, double samplingRate);
 
-void HeterodyneDetector_setFrequency(float frequency, HeterodyneDetector *heterodyneDetector);
+void HeterodyneDetector_setFrequency(double frequency, HeterodyneDetector *heterodyneDetector);
 
 SInt16 HeterodyneDetector_update(SInt16 sample, HeterodyneDetector *heterodyneDetector);

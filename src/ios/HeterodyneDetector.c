@@ -11,16 +11,16 @@
 #include "Settings.h"
 #include "HeterodyneDetector.h"
 
-HeterodyneDetector HeterodyneDetector_initialise(float frequency, float samplingRate) {
+HeterodyneDetector HeterodyneDetector_initialise(double frequency, double samplingRate) {
 
     HeterodyneDetector temp;
 
-    temp.realPart = 0.0f;
-    temp.imaginaryPart = 1.0f;
+    temp.realPart = 0.0;
+    temp.imaginaryPart = 1.0;
     
     temp.samplingRate = samplingRate;
 
-    float theta = 2.0f * M_PI * frequency / samplingRate;
+    double theta = 2.0 * M_PI * frequency / samplingRate;
 
     temp.cosTheta = cos(theta);
     temp.sinTheta = sin(theta);
@@ -41,9 +41,9 @@ HeterodyneDetector HeterodyneDetector_initialise(float frequency, float sampling
 
 }
 
-void HeterodyneDetector_setFrequency(float frequency, HeterodyneDetector *heterodyneDetector) {
+void HeterodyneDetector_setFrequency(double frequency, HeterodyneDetector *heterodyneDetector) {
 
-    float theta = 2.0f * M_PI * frequency / heterodyneDetector->samplingRate;
+    double theta = 2.0 * M_PI * frequency / heterodyneDetector->samplingRate;
 
     heterodyneDetector->cosTheta = cos(theta);
     heterodyneDetector->sinTheta = sin(theta);
@@ -54,23 +54,21 @@ SInt16 HeterodyneDetector_update(SInt16 sample, HeterodyneDetector *heterodyneDe
 
     HighPassFilter_update(sample, &heterodyneDetector->preMixingHighPassFilter);
 
-    float real = heterodyneDetector->cosTheta * heterodyneDetector->realPart - heterodyneDetector->sinTheta * heterodyneDetector->imaginaryPart;
-    float imaginary = heterodyneDetector->sinTheta * heterodyneDetector->realPart + heterodyneDetector->cosTheta * heterodyneDetector->imaginaryPart;
+    double real = heterodyneDetector->cosTheta * heterodyneDetector->realPart - heterodyneDetector->sinTheta * heterodyneDetector->imaginaryPart;
+    double imaginary = heterodyneDetector->sinTheta * heterodyneDetector->realPart + heterodyneDetector->cosTheta * heterodyneDetector->imaginaryPart;
 
     heterodyneDetector->realPart = real;
     heterodyneDetector->imaginaryPart = imaginary;
 
-    float output = HighPassFilter_output(&heterodyneDetector->preMixingHighPassFilter) * heterodyneDetector->realPart * 100.0f * (float) INT16_MAX;
-
-    //float output = (float)sample * heterodyneDetector->realPart * 100.0f;
+    double output = HighPassFilter_output(&heterodyneDetector->preMixingHighPassFilter) * heterodyneDetector->realPart * 100.0f * (double) INT16_MAX;
 
     LowPassFilter_update((SInt16) output, &heterodyneDetector->postMixingLowPassFilter);
 
-    output = LowPassFilter_output(&heterodyneDetector->postMixingLowPassFilter) * (float) INT16_MAX;
+    output = LowPassFilter_output(&heterodyneDetector->postMixingLowPassFilter) * (double) INT16_MAX;
 
     HighPassFilter_update((SInt16) output, &heterodyneDetector->dcRemovingHighPassFilter);
 
-    output = HighPassFilter_output(&heterodyneDetector->dcRemovingHighPassFilter) * (float) INT16_MAX;
+    output = HighPassFilter_output(&heterodyneDetector->dcRemovingHighPassFilter) * (double) INT16_MAX;
 
     return (SInt16) output;
 

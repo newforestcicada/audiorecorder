@@ -28,5 +28,5 @@ GoertzelFilter GoertzelFilter_initialise(int N, double centralFrequency, double 
 
 void GoertzelFilter_update(SInt16 sample, GoertzelFilter *goertzelFilter);
 
-float GoertzelFilter_estimate(GoertzelFilter *goertzelFilter);
+double GoertzelFilter_estimate(GoertzelFilter *goertzelFilter);
 

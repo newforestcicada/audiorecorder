@@ -8,7 +8,7 @@
 
 #include "HighPassFilter.h"
 
-HighPassFilter HighPassFilter_initialise(float GAIN, float RATIO) {
+HighPassFilter HighPassFilter_initialise(double GAIN, double RATIO) {
 
     HighPassFilter temp;
 
@@ -26,13 +26,13 @@ HighPassFilter HighPassFilter_initialise(float GAIN, float RATIO) {
 void HighPassFilter_update(SInt16 sample, HighPassFilter *highPassFilter) {
 
     highPassFilter->xv0 = highPassFilter->xv1;
-    highPassFilter->xv1 = (float) sample / (float) INT16_MAX / highPassFilter->GAIN;
+    highPassFilter->xv1 = (double) sample / (double) INT16_MAX / highPassFilter->GAIN;
     highPassFilter->yv0 = highPassFilter->yv1;
     highPassFilter->yv1 = (highPassFilter->xv1 - highPassFilter->xv0) + (highPassFilter->RATIO * highPassFilter->yv0);
 
 }
 
-float HighPassFilter_output(HighPassFilter *highPassFilter) {
+double HighPassFilter_output(HighPassFilter *highPassFilter) {
 
     return highPassFilter->yv1;
 

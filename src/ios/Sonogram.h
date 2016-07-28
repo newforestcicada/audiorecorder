@@ -21,8 +21,8 @@ typedef struct {
     int startFrequency;
     int numberOfFilters;
     GoertzelFilter goerztelFilters[MAX_NUMBER_OF_GOERTZEL_FILTERS];
-    float mainSonogram[MAX_NUMBER_OF_GOERTZEL_FILTERS][SONOGRAM_LENGTH];
-    float copySonogram[MAX_NUMBER_OF_GOERTZEL_FILTERS][SONOGRAM_LENGTH];
+    double mainSonogram[MAX_NUMBER_OF_GOERTZEL_FILTERS][SONOGRAM_LENGTH];
+    double copySonogram[MAX_NUMBER_OF_GOERTZEL_FILTERS][SONOGRAM_LENGTH];
 } Sonogram;
 
 void Sonogram_initialise(Sonogram *sonogram, int numberOfFilters, int startFrequency, int frequencyStep);
@@ -33,8 +33,8 @@ void Sonogram_copySonogram(Sonogram *sonogram);
 
 void Sonogram_clearSonogram(Sonogram *sonogram);
 
-float Sonogram_getCurrentValue(Sonogram *sonogram, int filter);
+double Sonogram_getCurrentValue(Sonogram *sonogram, int filter);
 
-float Sonogram_getValue(Sonogram *sonogram, int i, int j, int width, int height, int duration);
+double Sonogram_getValue(Sonogram *sonogram, int i, int j, int width, int height, int duration);
 
-void Sonogram_colour(float value,  float min, float max, UInt8 *red, UInt8 *green, UInt8 *blue);
+void Sonogram_colour(double value,  double min, double max, UInt8 *red, UInt8 *green, UInt8 *blue);

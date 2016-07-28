@@ -38,7 +38,7 @@ GoertzelFilter GoertzelFilter_initialise(int N, double centralFrequency, double 
 
 void GoertzelFilter_update(SInt16 sample, GoertzelFilter *goertzelFilter) {
 
-    goertzelFilter->y = goertzelFilter->hammingFactor[goertzelFilter->index] * sample + goertzelFilter->realW * goertzelFilter->d1 - goertzelFilter->d2;
+    goertzelFilter->y = goertzelFilter->hammingFactor[goertzelFilter->index] * (double)sample + goertzelFilter->realW * goertzelFilter->d1 - goertzelFilter->d2;
     goertzelFilter->d2 = goertzelFilter->d1;
     goertzelFilter->d1 = goertzelFilter->y;
 
@@ -46,7 +46,7 @@ void GoertzelFilter_update(SInt16 sample, GoertzelFilter *goertzelFilter) {
 
         goertzelFilter->index = 0;
 
-        float amplitude = (float)sqrt(goertzelFilter->d1 * goertzelFilter->d1 + goertzelFilter->d2 * goertzelFilter->d2 - goertzelFilter->d1 * goertzelFilter->d2 * goertzelFilter->realW);
+        double amplitude = sqrt(goertzelFilter->d1 * goertzelFilter->d1 + goertzelFilter->d2 * goertzelFilter->d2 - goertzelFilter->d1 * goertzelFilter->d2 * goertzelFilter->realW);
 
         KalmanFilter_update(amplitude, &goertzelFilter->kalmanFilter);
 
@@ -58,7 +58,7 @@ void GoertzelFilter_update(SInt16 sample, GoertzelFilter *goertzelFilter) {
 
 }
 
-float GoertzelFilter_estimate(GoertzelFilter *goertzelFilter) {
+double GoertzelFilter_estimate(GoertzelFilter *goertzelFilter) {
 
     return KalmanFilter_estimate(&goertzelFilter->kalmanFilter);
 

@@ -8,7 +8,7 @@
 
 #include "LowPassFilter.h"
 
-LowPassFilter LowPassFilter_initialise(float GAIN, float RATIO) {
+LowPassFilter LowPassFilter_initialise(double GAIN, double RATIO) {
 
     LowPassFilter temp;
 
@@ -26,13 +26,13 @@ LowPassFilter LowPassFilter_initialise(float GAIN, float RATIO) {
 void LowPassFilter_update(SInt16 sample, LowPassFilter *lowPassFilter) {
 
     lowPassFilter->xv0 = lowPassFilter->xv1;
-    lowPassFilter->xv1 = (float) sample / (float) INT16_MAX / lowPassFilter->GAIN;
+    lowPassFilter->xv1 = (double) sample / (double) INT16_MAX / lowPassFilter->GAIN;
     lowPassFilter->yv0 = lowPassFilter->yv1;
     lowPassFilter->yv1 = (lowPassFilter->xv0 + lowPassFilter->xv1) + (lowPassFilter->RATIO * lowPassFilter->yv0);
 
 }
 
-float LowPassFilter_output(LowPassFilter *lowPassFilter) {
+double LowPassFilter_output(LowPassFilter *lowPassFilter) {
 
     return lowPassFilter->yv1;
 

@@ -9,16 +9,16 @@
 #import <AudioToolbox/AudioToolbox.h>
 
 typedef struct {
-    float xv0;
-    float xv1;
-    float yv0;
-    float yv1;
-    float GAIN;
-    float RATIO;
+    double xv0;
+    double xv1;
+    double yv0;
+    double yv1;
+    double GAIN;
+    double RATIO;
 } HighPassFilter;
 
-HighPassFilter HighPassFilter_initialise(float GAIN, float RATIO);
+HighPassFilter HighPassFilter_initialise(double GAIN, double RATIO);
 
 void HighPassFilter_update(SInt16 sample, HighPassFilter *highPassFilter);
 
-float HighPassFilter_output(HighPassFilter *highPassFilter);
+double HighPassFilter_output(HighPassFilter *highPassFilter);

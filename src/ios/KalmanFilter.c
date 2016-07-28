@@ -10,7 +10,7 @@
 
 #include "KalmanFilter.h"
 
-KalmanFilter KalmanFilter_initialise(float processNoise, float measurementNoise, float estimateValue, float estimateVariance) {
+KalmanFilter KalmanFilter_initialise(double processNoise, double measurementNoise, double estimateValue, double estimateVariance) {
 
     KalmanFilter temp;
 
@@ -24,7 +24,7 @@ KalmanFilter KalmanFilter_initialise(float processNoise, float measurementNoise,
 
 }
 
-void KalmanFilter_update(float sample, KalmanFilter *kalmanFilter) {
+void KalmanFilter_update(double sample, KalmanFilter *kalmanFilter) {
     
     kalmanFilter->p = kalmanFilter->p + kalmanFilter->q;
     kalmanFilter->k = kalmanFilter->p / (kalmanFilter->p + kalmanFilter->r);
@@ -33,7 +33,7 @@ void KalmanFilter_update(float sample, KalmanFilter *kalmanFilter) {
 
 }
 
-float KalmanFilter_estimate(KalmanFilter *kalmanFilter) {
+double KalmanFilter_estimate(KalmanFilter *kalmanFilter) {
 
     return kalmanFilter->x;
 
