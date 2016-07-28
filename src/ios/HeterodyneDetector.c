@@ -17,7 +17,7 @@ HeterodyneDetector HeterodyneDetector_initialise(double frequency, double sampli
 
     temp.realPart = 0.0;
     temp.imaginaryPart = 1.0;
-    
+
     temp.samplingRate = samplingRate;
 
     double theta = 2.0 * M_PI * frequency / samplingRate;
@@ -62,16 +62,20 @@ SInt16 HeterodyneDetector_update(SInt16 sample, HeterodyneDetector *heterodyneDe
 
     double output = HighPassFilter_output(&heterodyneDetector->preMixingHighPassFilter) * heterodyneDetector->realPart * 100.0f * (double) INT16_MAX;
 
+    output = MAX(INT16_MIN, MIN(INT16_MAX, output));
+
     LowPassFilter_update((SInt16) output, &heterodyneDetector->postMixingLowPassFilter);
 
     output = LowPassFilter_output(&heterodyneDetector->postMixingLowPassFilter) * (double) INT16_MAX;
+
+    output = MAX(INT16_MIN, MIN(INT16_MAX, output));
 
     HighPassFilter_update((SInt16) output, &heterodyneDetector->dcRemovingHighPassFilter);
 
     output = HighPassFilter_output(&heterodyneDetector->dcRemovingHighPassFilter) * (double) INT16_MAX;
 
+    output = MAX(INT16_MIN, MIN(INT16_MAX, output));
+
     return (SInt16) output;
 
 }
-
-
