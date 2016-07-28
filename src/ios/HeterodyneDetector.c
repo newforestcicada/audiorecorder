@@ -11,6 +11,9 @@
 #include "Settings.h"
 #include "HeterodyneDetector.h"
 
+#define MAX(a,b) ((a) > (b) ? a : b)
+#define MIN(a,b) ((a) < (b) ? a : b)
+
 HeterodyneDetector HeterodyneDetector_initialise(double frequency, double samplingRate) {
 
     HeterodyneDetector temp;
