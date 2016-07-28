@@ -18,18 +18,18 @@ KalmanFilter KalmanFilter_initialise(double processNoise, double measurementNois
     temp.r = measurementNoise;
     temp.p = estimateVariance;
     temp.x = estimateValue;
-    temp.k = 0;
+    temp.k = 0.0;
 
     return temp;
 
 }
 
 void KalmanFilter_update(double sample, KalmanFilter *kalmanFilter) {
-    
+
     kalmanFilter->p = kalmanFilter->p + kalmanFilter->q;
     kalmanFilter->k = kalmanFilter->p / (kalmanFilter->p + kalmanFilter->r);
     kalmanFilter->x = kalmanFilter->x + kalmanFilter->k * (sample - kalmanFilter->x);
-    kalmanFilter->p = (1 - kalmanFilter->k) * kalmanFilter->p;
+    kalmanFilter->p = (1.0 - kalmanFilter->k) * kalmanFilter->p;
 
 }
 
