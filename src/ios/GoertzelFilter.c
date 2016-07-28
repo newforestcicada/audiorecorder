@@ -15,7 +15,7 @@ GoertzelFilter GoertzelFilter_initialise(int N, double centralFrequency, double 
     temp.N = N;
 
     double bandpassWidth = 4.0 * samplingFreqency / (double) N;
-    
+
     temp.k = 4.0 * centralFrequency / bandpassWidth;
 
     for (int n = 0; n < N; n++) {
@@ -30,7 +30,7 @@ GoertzelFilter GoertzelFilter_initialise(int N, double centralFrequency, double 
 
     temp.index = 0;
 
-    temp.kalmanFilter = KalmanFilter_initialise(0.1f, 5.0f, 1.0f, 1.0f);
+    temp.kalmanFilter = KalmanFilter_initialise(100.0f, 100.0f, 100.0f, 100.0f);
 
     return temp;
 
@@ -43,11 +43,11 @@ void GoertzelFilter_update(SInt16 sample, GoertzelFilter *goertzelFilter) {
     goertzelFilter->d1 = goertzelFilter->y;
 
     if (goertzelFilter->index++ >= goertzelFilter->N) {
-        
+
         goertzelFilter->index = 0;
 
         float amplitude = (float)sqrt(goertzelFilter->d1 * goertzelFilter->d1 + goertzelFilter->d2 * goertzelFilter->d2 - goertzelFilter->d1 * goertzelFilter->d2 * goertzelFilter->realW);
-        
+
         KalmanFilter_update(amplitude, &goertzelFilter->kalmanFilter);
 
         goertzelFilter->y = 0;
@@ -59,8 +59,7 @@ void GoertzelFilter_update(SInt16 sample, GoertzelFilter *goertzelFilter) {
 }
 
 float GoertzelFilter_estimate(GoertzelFilter *goertzelFilter) {
-    
+
     return KalmanFilter_estimate(&goertzelFilter->kalmanFilter);
 
 }
-
