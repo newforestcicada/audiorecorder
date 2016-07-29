@@ -68,7 +68,7 @@ double GoertzelFilter_estimate(GoertzelFilter *goertzelFilter) {
     
     // Kalman filter lost track. Using current data instead
     
-    if (isnan(value)) {
+    if (isnan(value) || isinf(value)) {
         
         value = goertzelFilter->amplitude;
         
