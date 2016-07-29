@@ -20,6 +20,7 @@ typedef struct {
     double y;
     double d1;
     double d2;
+    double amplitude;
     KalmanFilter kalmanFilter;
     double hammingFactor[MAX_GOERTZEL_FILTER_LENGTH];
 } GoertzelFilter;

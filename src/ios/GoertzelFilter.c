@@ -44,14 +44,16 @@ void GoertzelFilter_update(SInt16 sample, GoertzelFilter *goertzelFilter) {
     goertzelFilter->d2 = goertzelFilter->d1;
     goertzelFilter->d1 = goertzelFilter->y;
 
-    if (goertzelFilter->index++ >= goertzelFilter->N) {
+    goertzelFilter->index += 1;
+    
+    if (goertzelFilter->index >= goertzelFilter->N) {
 
         goertzelFilter->index = 0;
 
-        double amplitude = goertzelFilter->d1 * goertzelFilter->d1 + goertzelFilter->d2 * goertzelFilter->d2 - goertzelFilter->d1 * goertzelFilter->d2 * goertzelFilter->realW;
-        
-        KalmanFilter_update(sqrt(amplitude), &goertzelFilter->kalmanFilter);
+        goertzelFilter->amplitude = sqrt(goertzelFilter->d1 * goertzelFilter->d1 + goertzelFilter->d2 * goertzelFilter->d2 - goertzelFilter->d1 * goertzelFilter->d2 * goertzelFilter->realW);
 
+        KalmanFilter_update(goertzelFilter->amplitude, &goertzelFilter->kalmanFilter);
+        
         goertzelFilter->y = 0;
         goertzelFilter->d1 = 0;
         goertzelFilter->d2 = 0;
@@ -61,13 +63,15 @@ void GoertzelFilter_update(SInt16 sample, GoertzelFilter *goertzelFilter) {
 }
 
 double GoertzelFilter_estimate(GoertzelFilter *goertzelFilter) {
-
+    
     double value = KalmanFilter_estimate(&goertzelFilter->kalmanFilter);
+    
+    // Kalman filter lost track. Using current data instead
     
     if (isnan(value)) {
         
-        return sqrt(goertzelFilter->d1 * goertzelFilter->d1 + goertzelFilter->d2 * goertzelFilter->d2 - goertzelFilter->d1 * goertzelFilter->d2 * goertzelFilter->realW);
-    
+        value = goertzelFilter->amplitude;
+        
     }
     
     return value;
