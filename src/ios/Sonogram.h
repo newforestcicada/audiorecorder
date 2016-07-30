@@ -17,6 +17,7 @@ typedef struct {
     int index;
     int count;
     bool wrapped;
+    bool copyIsWrapped;
     int frequencyStep;
     int startFrequency;
     int numberOfFilters;

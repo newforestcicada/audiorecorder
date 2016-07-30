@@ -46,6 +46,8 @@ void RecordingBuffer_copyBuffer(RecordingBuffer *recordingBuffer) {
 
     if (recordingBuffer->wrapped) {
 
+        recordingBuffer->copyIsWrapped = true;
+
         int firstSectionLength = copyIndex;
 
         int secondSectionLength = RECORDING_BUFFER_LENGTH - firstSectionLength;
@@ -72,11 +74,15 @@ bool RecordingBuffer_getSample(SInt16 *sample, RecordingBuffer *recordingBuffer,
 
     }
 
-    int indexOfBuffer = RECORDING_BUFFER_LENGTH - numberOfSamples + index;
+    if (recordingBuffer->copyIsWrapped) {
+
+        index += RECORDING_BUFFER_LENGTH - numberOfSamples;
+
+    }
 
     if (index < numberOfSamples) {
 
-        *sample = recordingBuffer->copyBuffer[indexOfBuffer];
+        *sample = recordingBuffer->copyBuffer[index];
 
         return true;
 
@@ -102,6 +108,14 @@ OSStatus RecordingBuffer_writeRecording(AudioFileID *audioFile, RecordingBuffer 
 
     UInt32 bytesToWrite = samplesToWrite * sizeof(SInt16);
 
-    return AudioFileWriteBytes(*audioFile, false, 0, &bytesToWrite, &recordingBuffer->copyBuffer[RECORDING_BUFFER_LENGTH - samplesToWrite]);
+    if (recordingBuffer->copyIsWrapped) {
+
+        return AudioFileWriteBytes(*audioFile, false, 0, &bytesToWrite, &recordingBuffer->copyBuffer[RECORDING_BUFFER_LENGTH - samplesToWrite]);
+
+    } else {
+
+        return AudioFileWriteBytes(*audioFile, false, 0, &bytesToWrite, recordingBuffer->copyBuffer);
+
+    }
 
 }

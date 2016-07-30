@@ -15,6 +15,7 @@
 typedef struct {
     int index;
     bool wrapped;
+    bool copyIsWrapped;
     SInt16 mainBuffer[RECORDING_BUFFER_LENGTH];
     SInt16 copyBuffer[RECORDING_BUFFER_LENGTH];
 } RecordingBuffer;

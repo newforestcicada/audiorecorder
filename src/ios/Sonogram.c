@@ -16,9 +16,9 @@ void Sonogram_initialise(Sonogram *sonogram, int numberOfFilters, int startFrequ
 
     memset(sonogram, 0, sizeof(Sonogram));
 
-    sonogram->numberOfFilters = numberOfFilters;
-    sonogram->startFrequency = startFrequency;
     sonogram->frequencyStep = frequencyStep;
+    sonogram->startFrequency = startFrequency;
+    sonogram->numberOfFilters = numberOfFilters;
 
     for (int i = 0; i < numberOfFilters; i += 1) {
 
@@ -32,7 +32,8 @@ void Sonogram_clearSonogram(Sonogram *sonogram) {
 
     sonogram->index = 0;
     sonogram->wrapped = false;
-    memset(sonogram->mainSonogram, 0, sizeof(sonogram->mainSonogram));
+    sonogram->copyIsWrapped = false;
+    memset(sonogram->mainSonogram, 0, MAX_NUMBER_OF_GOERTZEL_FILTERS * SONOGRAM_LENGTH * sizeof(double));
 
 }
 
@@ -87,6 +88,8 @@ void Sonogram_copySonogram(Sonogram *sonogram) {
 
     if (sonogram->wrapped) {
 
+        sonogram->copyIsWrapped = true;
+
         int firstSectionLength = copyIndex;
 
         int secondSectionLength = SONOGRAM_LENGTH - firstSectionLength;
@@ -121,11 +124,23 @@ double Sonogram_getValue(Sonogram *sonogram, int i, int j, int width, int height
 
         int numberOfMeasurementPoints = duration * SAMPLES_PER_SECOND / GOERTZEL_WINDOW_SIZE;
 
+        if (numberOfMeasurementPoints > SONOGRAM_LENGTH) {
+
+            numberOfMeasurementPoints = SONOGRAM_LENGTH;
+
+        }
+
         double xRatio = (float)(numberOfMeasurementPoints - 1) / (double)(width - 1);
 
         double yRatio = (float)(sonogram->numberOfFilters - 1) / (double)(height - 1);
 
-        int xIndex = SONOGRAM_LENGTH - numberOfMeasurementPoints + (int)(0.5 + (double)i * xRatio);
+        int xIndex = (int)(0.5 + (double)i * xRatio);
+
+        if (sonogram->copyIsWrapped) {
+
+            xIndex += SONOGRAM_LENGTH - numberOfMeasurementPoints;
+
+        }
 
         int yIndex = sonogram->numberOfFilters - 1 - (int)(0.5 + (double)j * yRatio);
 
