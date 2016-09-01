@@ -118,7 +118,7 @@ static AudioRecorder *_audioRecorder;
 }
 
 - (BOOL)initialiseAudioRecorder {
-    
+
     return YES;
 
 }
@@ -129,37 +129,37 @@ static AudioRecorder *_audioRecorder;
     NSError *error = nil;
 
     AVAudioSession *session = [AVAudioSession sharedInstance];
-    
+
     // Initialise session and set rate and category
-    
+
     success = [session setPreferredSampleRate: 44100 error: &error];
-    
+
     success |= [session setCategory: AVAudioSessionCategoryPlayAndRecord error: &error];
-    
+
     if (!success) {
-        
+
         NSLog(@"[CordovaAudioRecorder] Error: %@", [error localizedDescription]);
-        
+
         return NO;
-        
+
     }
 
     // Check if input is available
-    
+
     success = [session isInputAvailable];
-    
+
     if (!success) {
-        
+
         NSLog(@"[CordovaAudioRecorder] No input available.");
-        
+
         return NO;
-        
+
     }
 
     // Set up audio component
-    
+
     AudioComponentDescription audioCompDesc;
-    
+
     audioCompDesc.componentType = kAudioUnitType_Output;
     audioCompDesc.componentSubType = kAudioUnitSubType_RemoteIO;
     audioCompDesc.componentManufacturer = kAudioUnitManufacturer_Apple;
@@ -169,15 +169,15 @@ static AudioRecorder *_audioRecorder;
     AudioComponent rioComponent = AudioComponentFindNext(NULL, &audioCompDesc);
 
     OSStatus status = AudioComponentInstanceNew(rioComponent, &_audioRecorderState.rioUnit);
-    
+
     if (status != noErr) {
-        
+
         NSLog(@"[CordovaAudioRecorder] Could not get audio IO unit.");
 
         return NO;
-    
+
     }
-    
+
     // Enable RIO output
 
     UInt32 oneFlag = 1;
@@ -187,13 +187,13 @@ static AudioRecorder *_audioRecorder;
     status = AudioUnitSetProperty(_audioRecorderState.rioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, bus0, &oneFlag, sizeof(oneFlag));
 
     if (status != noErr) {
-    
+
         NSLog(@"[CordovaAudioRecorder] Could not enable RIO output.");
-        
+
         return NO;
-    
+
     }
-    
+
     // Enable RIO input
 
     AudioUnitElement bus1 = 1;
@@ -201,13 +201,13 @@ static AudioRecorder *_audioRecorder;
     status = AudioUnitSetProperty(_audioRecorderState.rioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, bus1, &oneFlag, sizeof(oneFlag));
 
     if (status != noErr) {
-        
+
         NSLog(@"[CordovaAudioRecorder] Could not enable RIO input.");
-        
+
         return NO;
-        
+
     }
-    
+
     // Create format
 
     AudioStreamBasicDescription myASBD;
@@ -224,27 +224,27 @@ static AudioRecorder *_audioRecorder;
     myASBD.mBitsPerChannel = 16;
 
     status = AudioUnitSetProperty(_audioRecorderState.rioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, bus0, &myASBD, sizeof(myASBD));
-    
+
     if (status != noErr) {
-        
+
         NSLog(@"[CordovaAudioRecorder] Could not set the ABSD for RIO on input scope.");
 
         return NO;
-        
+
     }
 
     status = AudioUnitSetProperty(_audioRecorderState.rioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, bus1, &myASBD, sizeof(myASBD));
-    
+
     if (status != noErr) {
-        
+
         NSLog(@"[CordovaAudioRecorder] Could not set the ABSD for RIO on output scope.");
 
         return NO;
-        
+
     }
 
     // Set up the sonogoram and heterodyne settings
-    
+
     _audioRecorderState.asbd = myASBD;
     _audioRecorderState.output = SILENT;
 
@@ -257,27 +257,27 @@ static AudioRecorder *_audioRecorder;
     _audioRecorderState.lowPassFilter = LowPassFilter_initialise(1.404746361e+03, 0.9985762554);
 
     // Set up the render callback
-    
+
     AURenderCallbackStruct callbackStruct;
     callbackStruct.inputProc = InputModulatingRenderCallback;
     callbackStruct.inputProcRefCon = &_audioRecorderState;
 
     status = AudioUnitSetProperty(_audioRecorderState.rioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Global, bus0, &callbackStruct, sizeof(callbackStruct));
-    
+
     if (status != noErr) {
-        
+
         NSLog(@"[CordovaAudioRecorder] Could not set RIO render callback.");
 
         return NO;
-        
+
     }
-    
+
     // Initialise and start RIO
-    
+
     status = AudioUnitInitialize(_audioRecorderState.rioUnit);
-    
+
     if (status != noErr) {
-        
+
         NSLog(@"[CordovaAudioRecorder] Could not initialise the RIO unit.");
 
         return NO;
@@ -285,27 +285,27 @@ static AudioRecorder *_audioRecorder;
     }
 
     status = AudioOutputUnitStart(_audioRecorderState.rioUnit);
-    
+
     if (status != noErr) {
-        
+
         NSLog(@"[CordovaAudioRecorder] Could not start the RIO unit.");
 
         return NO;
 
     }
-    
+
     // Activate session
-    
+
     success = [session setActive: YES error: &error];
-    
+
     if (!success) {
-        
+
         NSLog(@"[CordovaAudioRecorder] Error: %@", [error localizedDescription]);
-        
+
         return NO;
-        
+
     }
-    
+
     // All done
 
     return YES;
@@ -315,15 +315,15 @@ static AudioRecorder *_audioRecorder;
 - (BOOL)stopAudioRecorder {
 
     // Stop the IO unit
-    
+
     OSStatus status = AudioOutputUnitStop(_audioRecorderState.rioUnit);
-    
+
     if (noErr != status) {
-        
+
         NSLog(@"[CordovaAudioRecorder] Could not start the RIO unit.");
-        
+
     }
-    
+
     // Stop the session
 
     BOOL success;
@@ -332,17 +332,17 @@ static AudioRecorder *_audioRecorder;
     AVAudioSession *session = [AVAudioSession sharedInstance];
 
     success = [session setActive: NO error: &error];
-    
+
     if (!success) {
-        
+
         NSLog(@"[CordovaAudioRecorder] Error: %@", [error localizedDescription]);
-        
+
         return NO;
-        
+
     }
-    
+
     // All done
-    
+
     return YES;
 
 }
@@ -446,7 +446,7 @@ static AudioRecorder *_audioRecorder;
 
     Sonogram_copySonogram(&_audioRecorderState.songram);
     RecordingBuffer_copyBuffer(&_audioRecorderState.recordingBuffer);
-    
+
 }
 
 - (NSString *)writeSonogramWithURL:(NSURL *)url withX:(int)x andY:(int)y forDuration:(int)duration {
@@ -522,19 +522,19 @@ static AudioRecorder *_audioRecorder;
     AudioFileID audioFile;
 
     OSStatus status = AudioFileCreateWithURL((__bridge CFURLRef) url, kAudioFileWAVEType, &_audioRecorderState.asbd, kAudioFileFlags_EraseFile, &audioFile);
-    
+
     if (status != noErr) {
-        
+
         NSLog(@"[CordovaAudioRecorder] Could not open audio file.");
-        
+
         return NO;
 
     }
 
     status = RecordingBuffer_writeRecording(&audioFile, &_audioRecorderState.recordingBuffer, duration);
-    
+
     if (status != noErr) {
-        
+
         NSLog(@"[CordovaAudioRecorder] Could not write data to audio file.");
 
         return NO;
@@ -542,9 +542,9 @@ static AudioRecorder *_audioRecorder;
     }
 
     status = AudioFileClose(audioFile);
-    
+
     if (status != noErr) {
-        
+
         NSLog(@"[CordovaAudioRecorder] Could not close audio file.");
 
         return NO;
@@ -562,17 +562,21 @@ static OSStatus InputModulatingRenderCallback(void *inRefCon, AudioUnitRenderAct
     UInt32 bus1 = 1;
 
     OSStatus status = AudioUnitRender(audioRecorderState->rioUnit, ioActionFlags, inTimeStamp, bus1, inNumberFrames, ioData);
-    
+
     if (status != noErr) {
-        
+
         NSLog(@"[CordovaAudioRecorder] Could not render from RemoteIO unit.");
-        
+
         return status;
-        
+
     }
 
     SInt16 sample = 0;
+
     SInt16 silent = 0;
+
+    SInt16 random = 0;
+    SInt16 heterodyne = 0;
 
     UInt32 bytesPerChannel = audioRecorderState->asbd.mBytesPerFrame / audioRecorderState->asbd.mChannelsPerFrame;
 
@@ -596,13 +600,13 @@ static OSStatus InputModulatingRenderCallback(void *inRefCon, AudioUnitRenderAct
 
                 if (audioRecorderState->output == WHITE_NOISE) {
 
-                    SInt16 random = rand();
+                    random = rand();
 
                     outputSample = &random;
 
                 } else if (audioRecorderState->output == HETERODYNE) {
 
-                    SInt16 heterodyne = HeterodyneDetector_update(sample, &audioRecorderState->heterodyneDetector);
+                    heterodyne = HeterodyneDetector_update(sample, &audioRecorderState->heterodyneDetector);
 
                     outputSample = &heterodyne;
 
