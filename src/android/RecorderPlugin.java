@@ -36,6 +36,9 @@ public class RecorderPlugin extends CordovaPlugin {
 
 	private static final int REC_SECONDS = 30;
 	private static final int UPDATE_RATE = 100;
+	/* True if you want to save to file exactly `n` seconds of recording even if
+	 * the buffer contains only `m < n` */
+	public static final boolean STORE_EMPTY_PART_OF_BUFFER = true; 
 	private AudioRecord mRecorder;
 	private int tBufferSize;
 	private int bufferIndex;
@@ -658,8 +661,9 @@ public class RecorderPlugin extends CordovaPlugin {
 			// Write data
 			byte[] outBuffer;
 			short[] tempBuffer;
-			int tempBufferIndex;
-			int tempMaxIndex;
+			int tempBufferIndex; // the point up to which the buffer has been filled
+			int tempMaxIndex;    // the point up to which the buffer has been filled
+			                     // or the length of the buffer, whichever is smallest
 
 			synchronized (mRecordBuffer) {
 
@@ -681,7 +685,8 @@ public class RecorderPlugin extends CordovaPlugin {
 					+ "tempMaxIndex: " + tempMaxIndex + ", "
 					+ "outBuffer.length: " + outBuffer.length + ", "
 					+ "mRecordBuffer.length: " + mRecordBuffer.length);
-			if (tempMaxIndex == mRecordBuffer.length) {
+			
+			if (tempMaxIndex == mRecordBuffer.length) { // we have recorded at least as much as the buffer
 				for (int i = tempBufferIndex; i < tempBuffer.length; i++) {
 					outBuffer[g] = (byte) (tempBuffer[i] & 0xff);
 					outBuffer[g + 1] = (byte) ((tempBuffer[i] >> 8) & 0xff);
@@ -703,7 +708,7 @@ public class RecorderPlugin extends CordovaPlugin {
 				g += 2;
 			}
 
-			/** keep only part of the buffer */
+			/** keep only part of the buffer, as specified by parameter `recLenght` */
 			if (recLength < mRecordBuffer.length / mSampleRate) {
 				byte[] cutBuffer = new byte[recLength * 2 * mSampleRate];
 				for (int i = 0; i < cutBuffer.length; i++) {
