@@ -10,6 +10,7 @@ import android.util.Log;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -117,7 +118,8 @@ public class Spectrogram {
         synchronized (mSonogram) {
             int idx = mSonogramIndex * NFILTERS;
             currentEnd = maxSonogramIndex * NFILTERS;
-            orderedSonogram = new int[currentEnd];
+            orderedSonogram = new int[mSonogram.length];
+            Arrays.fill(orderedSonogram, zero_color);
             boolean endReached = false;
 
             if (maxSonogramIndex * NFILTERS >= mSonogram.length) {
