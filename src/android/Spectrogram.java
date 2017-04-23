@@ -13,7 +13,9 @@ import java.util.ArrayList;
 import java.util.Date;
 
 /**
- * Created by dav on 01/06/15.
+ * Created by Davide Zilli on 01/06/15.
+ *
+ * Produces a spectrogram that can be saved to file.
  */
 public class Spectrogram {
 
@@ -27,6 +29,7 @@ public class Spectrogram {
                     Baselines.spectr_baselines.get("default");
 
     private int mSonogramIndex = 0;
+    private int maxSonogramIndex = 0;
     private int mUpdateRate;
     private int[] mSonogram;
 
@@ -34,6 +37,7 @@ public class Spectrogram {
             (int) (0.5f + 255.0f * base(0 - 0.5f)),
             (int) (0.5f + 255.0f * base(0)),
             (int) (0.5f + 255.0f * base(0 + 0.5f)));
+    private boolean doReverse = false;
 
 
     public static float interpolate(float value, float x0, float x1, float y0, float y1) {
@@ -64,7 +68,7 @@ public class Spectrogram {
 
         if (mSonogramIndex * NFILTERS + NFILTERS > mSonogram.length) {
             mSonogramIndex = 0;
-            Log.i("SON", "restarting circular array sonogram");
+            Log.i(TAG, "restarting circular array sonogram");
         }
 
 
@@ -85,6 +89,7 @@ public class Spectrogram {
             mSonogram[mSonogramIndex*NFILTERS + i] = col;
         }
         mSonogramIndex++;
+        maxSonogramIndex = Math.max(mSonogramIndex, maxSonogramIndex);
     }
 
     public Spectrogram(int updateRate, int recLength) {
@@ -105,28 +110,49 @@ public class Spectrogram {
 
     public String[] write(int width, int height, int recLength) {
 
-        //int[] intBmp = new int[mSonogram.size()];
-        int[] intBmp = new int[recLength*mUpdateRate*NFILTERS];
         Log.i(TAG, "sonogram size: " + mSonogram.length + "; recLength: " + recLength*10*NFILTERS);
 
-        int[] orderedSonogram = new int[mSonogram.length];
+        int[] orderedSonogram;
+        int currentEnd;
         synchronized (mSonogram) {
             int idx = mSonogramIndex * NFILTERS;
-            for (int i = 0; i <  mSonogram.length - idx; i++) {
-                if ( 0 == mSonogram[idx + i] ) {
-                    orderedSonogram[i] = zero_color;
-                } else{
-                    orderedSonogram[i] = mSonogram[idx + i];
-                }
+            currentEnd = maxSonogramIndex * NFILTERS;
+            orderedSonogram = new int[currentEnd];
+            boolean endReached = false;
 
-            }
-            for (int i = 0; i < idx; i ++){
-                if ( 0 == mSonogram[i] ) {
-                    orderedSonogram[mSonogram.length - idx + i] = zero_color;
-                } else {
-                    orderedSonogram[mSonogram.length - idx + i] = mSonogram[i];
+            if (maxSonogramIndex * NFILTERS >= mSonogram.length) {
+                for (int i = 0; i < mSonogram.length - idx; i++) {
+                    if (0 == mSonogram[idx + i]) {
+                        orderedSonogram[i] = zero_color;
+                    } else {
+                        orderedSonogram[i] = mSonogram[idx + i];
+                    }
+
                 }
             }
+
+            int j = currentEnd - idx;
+            for (int i = 0; i < idx; i++) {
+                if (0 == mSonogram[i]) {
+                    orderedSonogram[j+i] = zero_color;
+                } else {
+                    orderedSonogram[j+i] = mSonogram[i];
+                }
+            }
+        }
+
+        if (doReverse){
+            // reverse the order of the spectrogram
+            // NOTE: needs testing
+            int swap;
+            for (int i=0; i < orderedSonogram.length; i+=NFILTERS){
+                for (int j = 0; j < NFILTERS; j ++) {
+                    swap = orderedSonogram[i+j];
+                    orderedSonogram[i+j] = orderedSonogram[orderedSonogram.length-NFILTERS-i+j];
+                    orderedSonogram[orderedSonogram.length-NFILTERS-i+j] = swap;
+                }
+            }
+            Log.i(TAG, "swapped array");
         }
 
         Bitmap bmp = Bitmap.createBitmap(orderedSonogram, NFILTERS, orderedSonogram.length	/ NFILTERS, Bitmap.Config.ARGB_8888);

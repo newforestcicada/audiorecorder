@@ -177,7 +177,7 @@ public class RecorderPlugin extends CordovaPlugin {
 	}
 
 	private void writeSpectrogram(int width, int height, int recLength, CallbackContext callbackContext) {
-		Log.i("TAG", "Sonogram:: width: " + width + ", height: " + height + " recLength: " + recLength);
+		Log.i(TAG, "Sonogram:: width: " + width + ", height: " + height + " recLength: " + recLength);
 
 		//stopSurvey(width, height, recLength);
 
