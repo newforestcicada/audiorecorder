@@ -1,9 +1,11 @@
 package info.newforestcicada.audiorecorder.plugin;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.media.AudioFormat;
 import android.media.AudioManager;
@@ -15,7 +17,9 @@ import android.util.Log;
 import android.view.WindowManager;
 
 import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.CordovaWebView;
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -72,6 +76,16 @@ public class RecorderPlugin extends CordovaPlugin {
 
 	private Spectrogram mSpectrogram;
 
+	// Permissions
+	public static final String RECORD_AUDIO = Manifest.permission.RECORD_AUDIO;
+	public static final int SEARCH_REQ_CODE = 0;
+
+    @Override
+	public void initialize(CordovaInterface cordova, CordovaWebView webView) {
+		super.initialize(cordova, webView);
+		// your init code here
+	}
+
 
 	/**
 	 * The only method ever to be called from the javascript interface.
@@ -121,7 +135,7 @@ public class RecorderPlugin extends CordovaPlugin {
 		}
 
 		if ("getScaledAmplitude".equals(action)) {
-			callbackContext.success(String.valueOf(getAmplitude()));
+			getAmplitude(callbackContext);
 			return true;
 		}
 		if ("clearBuffers".equals(action)) {
@@ -197,8 +211,14 @@ public class RecorderPlugin extends CordovaPlugin {
 	 * including detecting the cicada or requesting an amplitude value.
 	 */
 	private void initialiseAudioRecorder(CallbackContext callbackContext) {
-		Log.i("initialiseAudioRecorder", "Recorder initialised");
-		startDetector(callbackContext);
+		if(!cordova.hasPermission(RECORD_AUDIO)) {
+            Log.i("initialiseAudioRecorder", "Requesting Audio recording permissions");
+			cordova.requestPermission(this, SEARCH_REQ_CODE, RECORD_AUDIO);
+		} else {
+            Log.i("initialiseAudioRecorder", "Recorder initialised");
+            startDetector(callbackContext);
+        }
+
 		
 		//callbackContext.success();
 	}
@@ -226,55 +246,63 @@ public class RecorderPlugin extends CordovaPlugin {
 	 */
 	private void startDetector(CallbackContext callbackContext) {
 
-		keepScreenOn();
+        if(!cordova.hasPermission(RECORD_AUDIO)) {
+            Log.i("startDetector", "Requesting Audio recording permissions");
+            cordova.requestPermission(this, SEARCH_REQ_CODE, RECORD_AUDIO);
+        } else {
 
-		if (mIsRecording) {
-			Log.i(TAG, "Detector already initialised");
-		} else {
-			mLowPassFilter = new LowPassFilter((float) 1.404746361e+03,
-					(float) 0.9985762554);
-			mRecorder = setupRecorder();
-			mRecorder.startRecording();
+            keepScreenOn();
 
-			mAnalyser = new AudioAnalyser(this.cordova.getActivity()
-					.getApplicationContext());
+            if (mIsRecording) {
+                Log.i(TAG, "Detector already initialised");
+            } else {
+                mLowPassFilter = new LowPassFilter((float) 1.404746361e+03,
+                        (float) 0.9985762554);
+                mRecorder = setupRecorder();
+                mRecorder.startRecording();
 
-			mHeterodyne = new Heterodyne(mHeterodyneFrequency, sampleRate);
-			
+                mAnalyser = new AudioAnalyser(this.cordova.getActivity()
+                        .getApplicationContext());
 
-			Log.i(TAG, "Recorder started");
-
-			mIsRecording = true;
-			cordova.getThreadPool().execute(new Runnable() {
-				public void run() {
-
-					short[] tBuffer = new short[tBufferSize];
-
-					while (mIsRecording) {
-						int numRead = mRecorder.read(tBuffer, 0, tBufferSize);
-
-						for (int i = 0; i < numRead; i++) {
-							short sample = tBuffer[i];
-							mAnalyser.updateWithSoundInputValue((float) sample);
-
-							mLowPassFilter.update((float) sample);
-
-							mRecordBuffer[bufferIndex] = sample;
-							bufferIndex = (bufferIndex + 1) % mRecordBuffer.length;
-							maxIndex = Math.min(++maxIndex, mRecordBuffer.length);
-
-							mHeterodyneBuffer[hetIndex] = mHeterodyne.updateWithSample(sample);
-							hetIndex = (hetIndex + 1) % mHeterodyneBuffer.length;
-						}
-					}
-				}
-			});
+                mHeterodyne = new Heterodyne(mHeterodyneFrequency, sampleRate);
 
 
-			startSurvey();
+                Log.i(TAG, "Recorder started");
 
-			callbackContext.success();
-		}
+                mIsRecording = true;
+                cordova.getThreadPool().execute(new Runnable() {
+                    public void run() {
+
+                        short[] tBuffer = new short[tBufferSize];
+
+                        while (mIsRecording) {
+                            int numRead = mRecorder.read(tBuffer, 0, tBufferSize);
+
+                            for (int i = 0; i < numRead; i++) {
+                                short sample = tBuffer[i];
+                                mAnalyser.updateWithSoundInputValue((float) sample);
+
+                                mLowPassFilter.update((float) sample);
+
+                                mRecordBuffer[bufferIndex] = sample;
+                                bufferIndex = (bufferIndex + 1) % mRecordBuffer.length;
+                                maxIndex = Math.min(++maxIndex, mRecordBuffer.length);
+
+                                mHeterodyneBuffer[hetIndex] = mHeterodyne.updateWithSample(sample);
+                                hetIndex = (hetIndex + 1) % mHeterodyneBuffer.length;
+                            }
+                        }
+                    }
+                });
+
+
+                startSurvey();
+
+                if (callbackContext != null) {
+                    callbackContext.success();
+                }
+            }
+        }
 
 
 	}
@@ -303,7 +331,9 @@ public class RecorderPlugin extends CordovaPlugin {
 		}
 
 		clearScreenOn();
-		callbackContext.success();
+        if (callbackContext != null) {
+            callbackContext.success();
+        }
 	}
 
 	
@@ -351,20 +381,26 @@ public class RecorderPlugin extends CordovaPlugin {
 	 * 
 	 * @return a single floating point value between 0 and 1.
 	 */
-	private float getAmplitude() {
+	private void getAmplitude(CallbackContext callbackContext) {
 
-		try {
-			float val = mLowPassFilter.getValue() / 2000;
+        if (mIsRecording) {
 
-			if (val > 1.0) {
-				val = 1;
-			}
+            try {
+                float val = mLowPassFilter.getValue() / 2000;
 
-			return val;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return (float) 0;
+                if (val > 1.0) {
+                    val = 1;
+                }
+
+                callbackContext.success(String.valueOf(val));
+            } catch (Exception e) {
+                e.printStackTrace();
+                callbackContext.success("0");
+            }
+
+        } else {
+            callbackContext.success("0");
+        }
 
 	}
 
@@ -378,26 +414,34 @@ public class RecorderPlugin extends CordovaPlugin {
 	 * @return double array
 	 */
 	private ArrayList<Float> getFrequencies() {
-		try {
+        if (cordova.hasPermission(RECORD_AUDIO)) {
+
+            try {
 			/*
 			 * short[] tBuffer = new short[tBufferSize]; mRecorder.read(tBuffer,
 			 * 0, tBufferSize); for (float sample : tBuffer) {
 			 * mAnalyser.updateWithSoundInputValue(sample); }
 			 */
-			ArrayList<Float> freqs = Spectrogram.getFrequencies(mAnalyser.getGoertzels());
-			return freqs;
-		} catch (NullPointerException e) {
-			// Log.e(TAG, "CD::getFrequencies NPEX"+e.toString());
-			e.printStackTrace();
-			//ArrayList<Float> freqs = new ArrayList<Float>(20);
-			return null;
+                ArrayList<Float> freqs = Spectrogram.getFrequencies(mAnalyser.getGoertzels());
+                return freqs;
+            } catch (NullPointerException e) {
+                // Log.e(TAG, "CD::getFrequencies NPEX"+e.toString());
+                e.printStackTrace();
+                //ArrayList<Float> freqs = new ArrayList<Float>(20);
+                return null;
 
-		}
-	}
+            }
+        }
+        return null;
+    }
 
 	private ArrayList<String> getFrequencieColours() {
 
-		return Spectrogram.getFrequencyColours(mAnalyser.getGoertzels());
+        if (mIsRecording) {
+            return Spectrogram.getFrequencyColours(mAnalyser.getGoertzels());
+        } else {
+            return null;
+        }
 	}
 
 	/**
@@ -410,35 +454,77 @@ public class RecorderPlugin extends CordovaPlugin {
 	 */
 	private AudioRecord setupRecorder() {
 
-		int channelConfig = AudioFormat.CHANNEL_IN_MONO;
-		int encoding = AudioFormat.ENCODING_PCM_16BIT;
-		int minBufferSize = AudioRecord.getMinBufferSize(sampleRate,
-				channelConfig, encoding);
-		if (minBufferSize != AudioRecord.ERROR_BAD_VALUE) {
+        int channelConfig = AudioFormat.CHANNEL_IN_MONO;
+        int encoding = AudioFormat.ENCODING_PCM_16BIT;
+        int minBufferSize = AudioRecord.getMinBufferSize(sampleRate,
+                channelConfig, encoding);
+        if (minBufferSize != AudioRecord.ERROR_BAD_VALUE) {
 
-			AudioRecord record = new AudioRecord(AudioSource.MIC, sampleRate,
-					channelConfig, encoding, minBufferSize);
-			if (record.getState() == AudioRecord.STATE_INITIALIZED) {
-				this.bufferIndex = 0;
-				this.tBufferSize = minBufferSize;
-				this.tBufferSize = 128;
-				//this.mAudioFormat = encoding;
-				mSampleRate = sampleRate;
+            AudioRecord record = new AudioRecord(AudioSource.MIC, sampleRate,
+                    channelConfig, encoding, minBufferSize);
+            if (record.getState() == AudioRecord.STATE_INITIALIZED) {
+                this.bufferIndex = 0;
+                this.tBufferSize = minBufferSize;
+                this.tBufferSize = 128;
+                //this.mAudioFormat = encoding;
+                mSampleRate = sampleRate;
 
-				Log.i(TAG, "Buffer size: " + this.tBufferSize);
+                Log.i(TAG, "Buffer size: " + this.tBufferSize);
 
-				mRecordBuffer = new short[sampleRate * REC_SECONDS];
-				mHeterodyneBuffer = new double[sampleRate * 1]; // 1 sec
+                mRecordBuffer = new short[sampleRate * REC_SECONDS];
+                mHeterodyneBuffer = new double[sampleRate * 1]; // 1 sec
 
-				return record;
-			}
-		}
-		Log.e(TAG, "Cannot record with sample rate = " + sampleRate);
-		return null;
+                return record;
+            }
+        }
+        Log.e(TAG, "Cannot record with sample rate = " + sampleRate);
+        return null;
+
 	}
 
+	///////////////////////
+    //// PERMISSIONS /////
+    private boolean getAudioPermission() {
+        if(cordova.hasPermission(RECORD_AUDIO)) {
+            return true;
+        } else {
+            Log.i("audioPermission", "Requesting Audio recording permissions");
+            cordova.requestPermission(this, SEARCH_REQ_CODE, RECORD_AUDIO);
+//            cordova.requestPermissions(this, 0, new String[]{ Manifest.permission.RECORD_AUDIO});
+            return false;
+        }
+    }
 
-	/**
+    @Override
+    public void onRequestPermissionResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case SEARCH_REQ_CODE: {
+
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    stopDetector(null);
+                    startDetector(null);
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+//                    Toast.makeText(cordova.getActivity().getApplicationContext(),
+//                            "Permission denied to read your External storage",
+//                            Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
+    }
+
+    //////// END PERMISSIONS //////////
+
+
+    /**
 	 * Emit white noise from the default output device;
 	 */
 	private void startWhiteNoise(CallbackContext callbackContext) {
