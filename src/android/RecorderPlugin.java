@@ -139,7 +139,7 @@ public class RecorderPlugin extends CordovaPlugin {
 			return true;
 		}
 		if ("clearBuffers".equals(action)) {
-			Log.i(TAG, "clearBuffers not implemented");
+			callbackContext.success();
 			return true;
 		}
 
